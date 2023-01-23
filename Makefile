@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g -Wall
 OUT=ttop.out
-OBJ=main.o
+OBJ=main.o cpuPoll.o misc.o usrPoll.o
 
 
 run: build
@@ -12,3 +12,6 @@ build: $(OBJ)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm $(OBJ)

@@ -13,6 +13,9 @@
 
 
 #include "cpuPoll.h"
+#include "usrPoll.h"
+
+#include "const.h"
 
 int main (int arc, char** argc) {
     // initialize message buffer
@@ -24,11 +27,13 @@ int main (int arc, char** argc) {
 
     // misc
     CPUstats cpuStats = { 0, 0 };
+    pid* usrStat = NULL;
 
     // main loop
-    for (int i = 0; i < 1; i++) {
-        getCPUstats(cpuStat, in, &cpuStats);
-        printf("Current CPU usage: %f\%\n", calculateCPUusage(cpuStats));
+    for (int i = 0; i < 100; i++) {
+        //getCPUstats(cpuStat, in, &cpuStats);
+        //printf("Current CPU usage: %f\%\n", calculateCPUusage(cpuStats));
+        getProc(&usrStat);
         sleep(1);
     }
 
