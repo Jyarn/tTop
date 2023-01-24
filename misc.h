@@ -3,4 +3,7 @@
 
 void colExtract (unsigned int* ret, int sz, char* bff);
 
+char* readFile (char* path);
+int buffFRead (char* buff, char* path, int sz);
+
 #endif

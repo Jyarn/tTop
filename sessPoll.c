@@ -3,24 +3,45 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #include <stdio.h>
 
+#include "misc.h"
+
+void printUtmp (int sz, char* in) {
+    for (int i = 0; i < sz; i++) {
+        printf("%c", in[i]);
+    }
+}
+
 int fetchSess (int fd) {
-    struct stat fInfo;
-    stat("/var/run/utmp", &fInfo);
+   setutent();
+   struct utmp* u;
 
-    struct utmp* ret = malloc(fInfo.st_size);
-    read(fd, ret, fInfo.st_size);
+    for ( ;; ) {
+        u = getutent();
+        if (!u) { break; }
 
-    float numSess = fInfo.st_size / sizeof(struct utmp); // number of user sessions
-    printf("There are %f user session(s)\n\n", numSess);
+        if (u->ut_type != 8) {
+            printf("%d (%d): ", u->ut_pid, u->ut_type);
+            printUtmp(32, u->ut_user);
+            char p[50];
+            sprintf(p, "/proc/%d/cmdline", u->ut_pid);
+            char a[2048];
 
-    for (int i = 0; i < numSess; i++) {
-        printf("%s\n", ret[i].ut_user);
+            buffFRead(a, p, 2048);
+            int r = a[2047] = '\0';
+
+
+            if (r != -1) {
+                printf(" [%s]", a);
+            }
+            printf("\n");
+        }
     }
 
+    printf("\n----------------------\n");
 
-    free(ret);
     return 0;
 }
