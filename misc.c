@@ -16,6 +16,15 @@ void colExtract (unsigned int* ret, int sz, char* bff) {
     }
 }
 
+
+int buffFRead (char* buff, char* path, int sz) {
+    // read a file into a buffer
+    int fd = open(path, O_RDONLY);
+    int ret = read(fd, buff, sz);
+    close(fd);
+    return ret; // note if read fails it will return -1
+}
+
 char* readFile (char* path) {
     struct stat fInfo;
     stat(path, &fInfo);
@@ -32,11 +41,4 @@ char* readFile (char* path) {
     }
 
     return ret;
-}
-
-int buffFRead (char* buff, char* path, int sz) {
-    // read a file into a buffer
-    int fd = open(path, O_RDONLY);
-    int ret = read(fd, buff, sz);
-    return ret; // note if read fails it will return -1
 }

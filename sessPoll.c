@@ -3,11 +3,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
-
+#include <string.h>
 #include <stdio.h>
 
 #include "misc.h"
+#include "sessPoll.h"
 
 void printUtmp (int sz, char* in) {
     for (int i = 0; i < sz; i++) {
@@ -15,33 +15,33 @@ void printUtmp (int sz, char* in) {
     }
 }
 
-int fetchSess (int fd) {
-   setutent();
-   struct utmp* u;
+sessInfo* fetchSess () {
+    setutent();
+    struct utmp* u = getutent();
+    sessInfo* head = NULL; // return this
 
-    for ( ;; ) {
-        u = getutent();
-        if (!u) { break; }
+    for (; u != NULL; u = getutent()) {
+        // link new node with head
+        sessInfo* n = malloc(sizeof(sessInfo));
+        n->next = head;
+        n->pid = u->ut_pid;
+        n->type = u->ut_type;
 
-        if (u->ut_type != 8) {
-            printf("%d (%d): ", u->ut_pid, u->ut_type);
-            printUtmp(32, u->ut_user);
-            char p[50];
-            sprintf(p, "/proc/%d/cmdline", u->ut_pid);
-            char a[2048];
+        n->user = malloc((UT_NAMESIZE + 1)*sizeof(char) );
+        strncpy(n->user, u->ut_user, 32);
+        n->user[UT_NAMESIZE] = '\0';
 
-            buffFRead(a, p, 2048);
-            int r = a[2047] = '\0';
-
-
-            if (r != -1) {
-                printf(" [%s]", a);
-            }
-            printf("\n");
+        char path[32];
+        sprintf(path, "/proc/%d/cmdline", u->ut_pid);
+        n->procName = malloc(2048*sizeof(char));
+        if (buffFRead(n->procName, path, 2048) == -1) {
+            // read failed, free memory
+            free(n->procName);
+            n->procName = NULL;
         }
+
+        head = n;
     }
 
-    printf("\n----------------------\n");
-
-    return 0;
+    return head;
 }

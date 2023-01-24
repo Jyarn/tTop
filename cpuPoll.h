@@ -8,5 +8,5 @@ typedef struct s_CPUstats {
     unsigned int  total;
 } CPUstats;
 
-void getCPUstats (int fd, char* bff, CPUstats* prev);
+void getCPUstats (CPUstats* prev);
 double calculateCPUusage(CPUstats stats);

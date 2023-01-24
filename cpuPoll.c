@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 
 #include <unistd.h>
 
@@ -6,28 +7,28 @@
 #include "const.h"
 
 #include "cpuPoll.h"
+#include "misc.h"
 
-void getCPUstats (int fd, char* bff, CPUstats* prev) {
+void getCPUstats (CPUstats* prev) {
     /*
-        fd = file descriptor for /proc/stat
-        bff = buffer reading in files
-        prev = pointer to a CPUstat to be updated with new delta
+        prev = pointer to a CPUstat to be updated with a new delta
     */
 
     unsigned int stats[10];
-    read(fd, bff, BUFFSZ);
+    char bff[2048];
+    if (buffFRead(bff, "/proc/stat", 2048) == -1) {
+        fprintf(stderr, "Unable able to read from /proc/stat");
+        return;
+    }
+    bff[2047] = '\0';
 
-
-    bff = strchr(bff, ' ');
-    colExtract(stats, 10, bff);
+    colExtract(stats, 10, strchr(bff, ' '));
 
     prev->pActive = prev->active;
     prev->pTotal = prev->total;
 
     prev->active = stats[0]+stats[1]+stats[2]+stats[5]+stats[6];
     prev->total = prev->active + stats[3]+stats[4];
-
-    lseek(fd, 0, SEEK_SET);
 }
 
 double calculateCPUusage(CPUstats stats) {
