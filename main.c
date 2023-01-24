@@ -13,7 +13,7 @@
 
 
 #include "cpuPoll.h"
-#include "usrPoll.h"
+#include "sessPoll.h"
 
 #include "const.h"
 
@@ -24,16 +24,16 @@ int main (int arc, char** argc) {
     // define file descriptors
     int cpuStat = open("/proc/stat", O_RDONLY);
     int memStat = open("/proc/meminfo", O_RDONLY);
+    int sesStat = open("/var/run/utmp", O_RDONLY);
 
     // misc
     CPUstats cpuStats = { 0, 0 };
-    pid* usrStat = NULL;
 
     // main loop
     for (int i = 0; i < 100; i++) {
         //getCPUstats(cpuStat, in, &cpuStats);
         //printf("Current CPU usage: %f\%\n", calculateCPUusage(cpuStats));
-        getProc(&usrStat);
+        fetchSess(sesStat);
         sleep(1);
     }
 

@@ -1,0 +1,4 @@
+Remove memory pool and just read files normally         C
+SessPooll                                               A
+MemPoll                                                 A
+cli                                                     A-
