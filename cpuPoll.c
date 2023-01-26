@@ -20,7 +20,8 @@ void getCPUstats (CPUstats* prev) {
         fprintf(stderr, "Unable able to read from /proc/stat");
         return;
     }
-    bff[2047] = '\0';
+
+    filterString(bff, 2048);
 
     colExtract(stats, 10, strchr(bff, ' '));
 

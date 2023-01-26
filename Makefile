@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g -Wall
 OUT=ttop.out
-OBJ=main.o cpuPoll.o misc.o usrPoll.o sessPoll.o
+OBJ=main.o cpuPoll.o misc.o usrPoll.o sessPoll.o memPoll.o
 
 
 run: build

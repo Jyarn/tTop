@@ -1,5 +1,6 @@
-Remove memory pool and just read files normally         C
-Console Rendering                                       A--
-SessPooll                                               A
-MemPoll                                                 A
+Remove memory pool and just read files normally (D)     C
+Normal Rendering (W)                                    A--
+Fancy Output                                            B
+SessPool (D)                                            A
+MemPoll (D)                                             A
 cli                                                     A-
