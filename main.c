@@ -23,6 +23,8 @@ void printSess (sessInfo* s) {
     while (s != NULL) {
         printf("%d(%d) %s-->%s\n", s->pid, s->type, s->user, s->procName);
         s = s->next;
+	free(p->user);
+	free(p->procName);
         free(p);
         p = s;
     }

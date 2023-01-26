@@ -22,7 +22,10 @@ void colExtract (unsigned int* ret, int sz, char* bff) {
 
 int buffFRead (char* buff, char* path, int sz) {
     // read a file into a buffer
+    // return how much of path has been read into buff
+
     int fd = open(path, O_RDONLY);
+    if (fd < 0) { return -1; }
     int ret = read(fd, buff, sz);
     close(fd);
     return ret; // note if read fails it will return -1

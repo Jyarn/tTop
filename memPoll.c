@@ -8,7 +8,7 @@
 #include "memPoll.h"
 
 memstat* fetchMemStats () {
-    char bff[2048];
+    char bff[2048] = { 0 };
     if (buffFRead(bff, "/proc/meminfo", 2047) == -1) {
         fprintf(stderr, "Unable to open /proc/meminfo\n");
     }

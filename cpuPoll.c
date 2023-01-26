@@ -3,8 +3,9 @@
 
 #include <unistd.h>
 
+#include <stdlib.h>
+
 #include "misc.h"
-#include "const.h"
 
 #include "cpuPoll.h"
 #include "misc.h"
@@ -21,15 +22,16 @@ void getCPUstats (CPUstats* prev) {
         return;
     }
 
-    filterString(bff, 2048);
+    char* flt = filterString(bff, 2048);
 
-    colExtract(stats, 10, strchr(bff, ' '));
+    colExtract(stats, 10, strchr(flt, ' '));
 
     prev->pActive = prev->active;
     prev->pTotal = prev->total;
 
     prev->active = stats[0]+stats[1]+stats[2]+stats[5]+stats[6];
     prev->total = prev->active + stats[3]+stats[4];
+    free(flt);
 }
 
 double calculateCPUusage(CPUstats stats) {
