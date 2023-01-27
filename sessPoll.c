@@ -1,4 +1,3 @@
-#include "const.h"
 #include <utmp.h>
 #include <sys/stat.h>
 #include <unistd.h>

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <time.h>
+#include <unistd.h>
 
 #include "cpuPoll.h"
 #include "sessPoll.h"
@@ -34,61 +34,92 @@ void printMem (memstat* m) {
 }
 */
 
-char* processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
-    getCPUstats(prevStats);
-    double crrActive = (double)(prevStats->active - prevStats->pActive);
-    double crrTotal  = (double)(prevStats->total - prevStats->pTotal);
-    double currentUse = (crrActive / crrTotal)*100;
+void stringMult (char multend, int n, char* out) {
+	// equivalent to python's string multiplication thing
+	// ex. 'a' * 5 == aaaaa
+	// output written into out, never checks if writing is inbounds
+	// also null terminates
 
-    char* body = malloc(sizeof(char)*23 ); // allocate enough space for "total cpu use = __.__%"
+	int i;
+	for (i = 0; i < n; i++) {
+		out[i] = multend;
+	}
 
-    if (fancy) {
-        char* cpuView = malloc(sizeof(char)*100 );
-        char* cpuDelta = malloc(sizeof(char)*100 );
-        char* numDelta = malloc(sizeof(char)*6 );
-
-        int i = 0;
-
-        for (i = 0; i < (int)currentUse; i++) {
-            cpuView[i] = '|';
-        }
-
-        cpuView[i] = '\0';
-
-
-        double delta = currentUse - *prevUse;
-        char marker = delta < 0 ? '-' : '+';
-        for (i = 0; i < ABS(-1*delta); i++) {
-            cpuDelta[i] = marker;
-
-        }
-
-        cpuDelta[i] = '\0';
-
-        sprintf(numDelta, "%c%2.2f", marker, ABS(delta));
-        printf("(%s) total cpu use = %2.2f%\n%s\n%s\n", numDelta,currentUse, cpuView, cpuDelta);
-
-        *prevUse = currentUse;
-        free(cpuView);
-        free(cpuDelta);
-        free(numDelta);
-
-        return NULL;
-    }
-
-    printf("total cpu use = %2.2f%\n", currentUse);
-    return NULL;
+	out[i] = '\0';
 }
 
-int main (int arc, char** argc) {
-    // misc
+int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
+	/*
+	 * Print cpu stats with --graphics enabled or disabled
+	 *
+	 * msg = message buffer always of size 2048. The string to be printed is written here
+	 * prevStats = previous raw cpu usage stats, used to calculate current cpu stats
+	 * prevUse = a pointer to previous cpu usage stats (as a percentage) used to calculate
+	 *			 the change in cpu usage (cpu usage delta)
+	 * fancy = specifies if additional information is to be printed (--graphics flag)
+	 *
+	 * returns number of lines that were printed (hardcoded)
+	 */
+
+    getCPUstats(prevStats);
+    double currentUse = calculateCPUusage(*prevStats);
+
+    if (fancy) {
+		char cpuView[101];
+		char cpuDelta[101];
+
+		stringMult('|', (int)currentUse, cpuView);
+
+        double delta = currentUse - *prevUse;
+		char marker = delta < 0 ? '-' : '+';
+		stringMult(marker, ABS((int)delta ), cpuDelta);
+
+		printf("total cpu = %2.2f%c\n%s (%c%2.2f)\n%s\n", currentUse, '%', cpuDelta, marker, ABS(delta), cpuView);
+        *prevUse = currentUse;
+
+        return 3;
+    }
+
+    printf("total cpu use = %2.2f%c\n", currentUse, '%');
+    return 1;
+}
+
+void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, unsigned int delay) {
+/*
+ * Main loop for printing to screen. Takes in a series of arguments
+ * sequential = print without escapes codes as though output is being redirected into a file
+ * fancy = --graphics (print all data)
+ * stats = 0 - print system and user, 1 - print system only, 2 - print user only
+ * samples = number of poll(cycle) to perform before averaging out the results (assumed to be an unsigned int)
+ * delay = time in-between each poll in seconds (assumed to be an unsigned int)
+ *
+ * At the end of the program, the screen will be cleared and will be averaged at the end and displayed
+ */
+
     CPUstats cpuStats = { 0, 0 };
     double prevUse = 0;
 
+	int jump;
+
     // main loop
-    for (int i = 0; i < 100; i++) {
-        printf("\nPoll %d: \n+=====================================+\n", i+1);
-        processCPU_use(&cpuStats, &prevUse, true);
-        sleep(1);
-    }
+    for (int i = 0; i < samples; i++) {
+        printf("Poll %d: \n+=====================================+\n", i+1);
+		jump = 2;
+		if (stats != 2) {
+			jump += processCPU_use(&cpuStats, &prevUse, true);
+		}
+
+		sleep(delay);
+
+		if (!sequential && i+1 < samples) {
+			printf("\x1b[%dA\x1b[0J", jump); // move cursor "jump" lines up and clear the screen
+		}
+		else {
+			printf("\n\n");
+		}
+	}
+}
+
+int main (int arc, char** argc) {
+	pollUse(false, true, 0, 5, 1);
 }
