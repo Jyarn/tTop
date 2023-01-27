@@ -24,7 +24,7 @@ void getCPUstats (CPUstats* prev) {
 
     char* flt = filterString(bff, 2048);
 
-    colExtract(stats, 10, strchr(flt, ' '));
+    colExtract(stats, 10, flt);
 
     prev->pActive = prev->active;
     prev->pTotal = prev->total;
