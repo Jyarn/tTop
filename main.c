@@ -48,7 +48,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		if (stats != 2) {
 			jump += processCPU_use(&cpuStats, &prevUse, fancy) + 1;
 			printf("+=====================================+\n");
-			jump += processMem_use(memStats, fancy) + 1;
+			jump += processMem_use(&memStats, fancy) + 1;
 			printf("+=====================================+\n");
 		}
 

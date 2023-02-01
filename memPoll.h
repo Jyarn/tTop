@@ -15,6 +15,6 @@ typedef struct s_memstat {
 } memstat;
 
 memstat* fetchMemStats ();
-int processMem_use (memstat* prev, bool fancy);
+int processMem_use (memstat** prev, bool fancy);
 
 #endif

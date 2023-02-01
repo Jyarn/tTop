@@ -35,16 +35,16 @@ memstat* fetchMemStats () {
     return ret;
 }
 
-int processMem_use (memstat* prev, bool fancy) {
+int processMem_use (memstat** prev, bool fancy) {
 	memstat* current = fetchMemStats();
 
-	char ramVis[51] = { 0 }; // RAM memory Visualiation
-	char swapVis[51] = { 0 };
-	char virtVis[51] = { 0 };
+	char ramVis[201] = { 0 }; // RAM memory Visualiation
+	char swapVis[201] = { 0 };
+	char virtVis[201] = { 0 };
 
-    double rPercent = current->rUsed / current->rTotal * 50;
-    double sPercent = current->sUsed / current->sTotal * 50;
-    double vPercent = current->vUsed / current->vTotal * 50;
+    double rPercent = current->rUsed / current->rTotal * 200;
+    double sPercent = current->sUsed / current->sTotal * 200;
+    double vPercent = current->vUsed / current->vTotal * 200;
 
 	if (fancy) {
 		stringMult('|', (int)rPercent, ramVis);
@@ -52,20 +52,20 @@ int processMem_use (memstat* prev, bool fancy) {
         stringMult('|', (int)vPercent, virtVis);
 	}
 
-    char rMarker = (current->rUsed - prev->rUsed) < 0 ? '-' : '+';
-    char sMarker = (current->sUsed - prev->sUsed) < 0 ? '-' : '+';
-    char vMarker = (current->vUsed - prev->vUsed) < 0 ? '-' : '+';
+    char rMarker = (current->rUsed - (*prev)->rUsed) < 0 ? '-' : '+';
+    char sMarker = (current->sUsed - (*prev)->sUsed) < 0 ? '-' : '+';
+    char vMarker = (current->vUsed - (*prev)->vUsed) < 0 ? '-' : '+';
 
-    printf("Physical (GB): %2.2f/%2.2f - %s\n", current->rUsed, current->rTotal, ramVis);
-    printf("(%c%2.2f)\n\n", rMarker, ABS(current->rUsed - prev->rUsed));
+    printf("Physical (GB):\n%2.2f/%2.2f - %s\n", current->rUsed, current->rTotal, ramVis);
+    printf("(%c%2.2f)\n\n", rMarker, ABS(current->rUsed - (*prev)->rUsed));
 
-    printf("Swap (GB): %2.2f/%2.2f - %s\n", current->sUsed, current->sTotal, swapVis);
-    printf("(%c%2.2f)\n\n", sMarker, ABS(current->sUsed - prev->sUsed));
+    printf("Swap (GB):\n%2.2f/%2.2f - %s\n", current->sUsed, current->sTotal, swapVis);
+    printf("(%c%2.2f)\n\n", sMarker, ABS(current->sUsed - (*prev)->sUsed));
 
-    printf("Virtual (GB): %2.2f/%2.2f - %s\n", current->vUsed, current->vTotal, virtVis);
-    printf("(%c%2.2f)\n", vMarker, ABS(current->vUsed - prev->vUsed));
+    printf("Virtual (GB):\n%2.2f/%2.2f - %s\n", current->vUsed, current->vTotal, virtVis);
+    printf("(%c%2.2f)\n", vMarker, ABS(current->vUsed - (*prev)->vUsed));
 
-    free(prev);
-    *prev = *current;
-    return 8;
+    free(*prev);
+    *prev = current; // seg faulting
+    return 11;
 }
