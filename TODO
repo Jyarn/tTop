@@ -1,6 +1,8 @@
 Remove memory pool and just read files normally (D)     C
 Normal Rendering (W)                                    A--
-Fancy Output                                            B
+Fancy Output (W)                                        B
 SessPool (D)                                            A
 MemPoll (D)                                             A
-cli                                                     A-
+cli (W)                                                 A-
+Average results after program execution					C
+README/Documentation									B

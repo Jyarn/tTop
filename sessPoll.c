@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "misc.h"
 #include "sessPoll.h"
@@ -43,4 +44,33 @@ sessInfo* fetchSess () {
     }
 
     return head;
+}
+
+int processSess_Use (bool fancy) {
+    int lines = 0;
+
+    sessInfo* i = fetchSess();
+    sessInfo* temp = i;
+
+    while (i != NULL) {
+        if (i->type != DEAD_PROCESS) {
+            lines++;
+
+            if (fancy) {
+                printf("%d(%d) %s-->%s\n", i->pid, i->type, i->user, i->procName);
+            }
+            else {
+                printf("%s-->%s\n", i->user, i->procName);
+            }
+        }
+
+        i = i->next;
+        free(temp->user);
+        free(temp->procName);
+        free(temp);
+
+        temp = i;
+    }
+
+    return lines;
 }

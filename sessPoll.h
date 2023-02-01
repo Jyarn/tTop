@@ -11,5 +11,6 @@ typedef struct s_sessInfo {
 } sessInfo;
 
 sessInfo* fetchSess ();
+int processSess_Use (bool fancy);
 
 #endif

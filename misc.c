@@ -76,3 +76,18 @@ char* filterString (char* in, int sz) {
     ret[ (j < sz ? j : sz-1) ] = '\0'; // null terminate index max(j, sz-1)
     return ret;
 }
+
+void stringMult (char multend, int n, char* out) {
+	// equivalent to python's string multiplication thing
+	// ex. 'a' * 5 == aaaaa
+	// output written into out, never checks if writing is inbounds
+	// also null terminates
+
+	int i;
+	for (i = 0; i < n; i++) {
+		out[i] = multend;
+	}
+
+	out[i] = '\0';
+}
+

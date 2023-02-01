@@ -1,18 +1,20 @@
 #ifndef __MEMPOLL__
 #define __MEMPOLL__
 
-// (mem)ory (stat)us
+#include <stdbool.h>
+
 typedef struct s_memstat {
-    unsigned int        tMem;
-    unsigned int   swapTotal;
+    double rUsed;
+    double rTotal;
 
-    unsigned int   available;
-    unsigned int        free;
-    unsigned int        used;
+    double sUsed;
+    double sTotal;
 
-    unsigned int    swapFree;
+    double vUsed;
+    double vTotal;
 } memstat;
 
 memstat* fetchMemStats ();
+int processMem_use (memstat* prev, bool fancy);
 
 #endif

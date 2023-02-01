@@ -4,84 +4,22 @@
 #include <stdbool.h>
 
 #include <unistd.h>
+#include <sys/utsname.h>
 
 #include "cpuPoll.h"
 #include "sessPoll.h"
 #include "memPoll.h"
 
-#define ABS(a) (a < 0 ? -a : a)
+int fetchSysInfo () {
+	struct utsname sysInfo;
+	uname(&sysInfo);
 
-/*
-void printSess (sessInfo* s) {
-    sessInfo* p = s;
-    while (s != NULL) {
-        printf("%d(%d) %s-->%s\n", s->pid, s->type, s->user, s->procName);
-        s = s->next;
-	    free(p->user);
-	    free(p->procName);
-        free(p);
-        p = s;
-    }
-}
-*/
-
-/*
-void printMem (memstat* m) {
-    const float conv = 1024.0*1024.0; // convert kb into gb
-    printf("(total-free)/mtotal: %d/%d = %f\n", m->tMem - m->free, m->tMem, (float)(m->tMem-m->free) / (float)m->tMem);
-    printf("used/mtotal: %d/%d = %f\n", m->used, m->tMem, (float)m->used / (float)m->tMem);
-    free(m);
-}
-*/
-
-void stringMult (char multend, int n, char* out) {
-	// equivalent to python's string multiplication thing
-	// ex. 'a' * 5 == aaaaa
-	// output written into out, never checks if writing is inbounds
-	// also null terminates
-
-	int i;
-	for (i = 0; i < n; i++) {
-		out[i] = multend;
-	}
-
-	out[i] = '\0';
-}
-
-int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
-	/*
-	 * Print cpu stats with --graphics enabled or disabled
-	 *
-	 * msg = message buffer always of size 2048. The string to be printed is written here
-	 * prevStats = previous raw cpu usage stats, used to calculate current cpu stats
-	 * prevUse = a pointer to previous cpu usage stats (as a percentage) used to calculate
-	 *			 the change in cpu usage (cpu usage delta)
-	 * fancy = specifies if additional information is to be printed (--graphics flag)
-	 *
-	 * returns number of lines that were printed (hardcoded)
-	 */
-
-    getCPUstats(prevStats);
-    double currentUse = calculateCPUusage(*prevStats);
-
-    if (fancy) {
-		char cpuView[101];
-		char cpuDelta[101];
-
-		stringMult('|', (int)currentUse, cpuView);
-
-        double delta = currentUse - *prevUse;
-		char marker = delta < 0 ? '-' : '+';
-		stringMult(marker, ABS((int)delta ), cpuDelta);
-
-		printf("total cpu = %2.2f%c\n%s (%c%2.2f)\n%s\n", currentUse, '%', cpuDelta, marker, ABS(delta), cpuView);
-        *prevUse = currentUse;
-
-        return 3;
-    }
-
-    printf("total cpu use = %2.2f%c\n", currentUse, '%');
-    return 1;
+	printf("OS: %s\n", sysInfo.sysname);
+	printf("Hostname: %s\n", sysInfo.nodename);
+	printf("Version: %s\n", sysInfo.version);
+	printf("Release: %s\n", sysInfo.release);
+	printf("Machine: %s\n", sysInfo.machine);
+	return 5;
 }
 
 void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, unsigned int delay) {
@@ -97,6 +35,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
  */
 
     CPUstats cpuStats = { 0, 0 };
+	memstat* memStats = fetchMemStats();
     double prevUse = 0;
 
 	int jump;
@@ -105,10 +44,20 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
     for (int i = 0; i < samples; i++) {
         printf("Poll %d: \n+=====================================+\n", i+1);
 		jump = 2;
+
 		if (stats != 2) {
-			jump += processCPU_use(&cpuStats, &prevUse, true);
+			jump += processCPU_use(&cpuStats, &prevUse, fancy) + 1;
+			printf("+=====================================+\n");
+			jump += processMem_use(memStats, fancy) + 1;
+			printf("+=====================================+\n");
 		}
 
+		if (stats != 1) {
+			jump += processSess_Use(fancy) + 1;
+			printf("+=====================================+\n");
+		}
+
+		jump += fetchSysInfo();
 		sleep(delay);
 
 		if (!sequential && i+1 < samples) {

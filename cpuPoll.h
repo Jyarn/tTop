@@ -1,5 +1,6 @@
 #include <string.h>
 #include "misc.h"
+#include <stdbool.h>
 
 typedef struct s_CPUstats {
     unsigned int pActive;
@@ -10,3 +11,4 @@ typedef struct s_CPUstats {
 
 void getCPUstats (CPUstats* prev);
 double calculateCPUusage(CPUstats stats);
+int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy);
