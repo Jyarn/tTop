@@ -5,13 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "java",
-            "name": "Launch roundDouble",
-            "request": "launch",
-            "mainClass": "roundDouble",
-            "projectName": "t-top_b2f5e39a"
-        },
-        {
             "name": "launch",
             "type": "cppdbg",
             "request": "launch",

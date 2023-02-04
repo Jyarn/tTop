@@ -57,7 +57,7 @@ int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
 
     getCPUstats(prevStats);
     double currentUse = calculateCPUusage(*prevStats);
-    printf("total cpu = %2.2f%c\n", currentUse, '%');
+    //printf("total cpu = %2.2f%c\n", currentUse, '%');
     if (fancy) {
 		char cpuView[101];
 		char cpuDelta[101];

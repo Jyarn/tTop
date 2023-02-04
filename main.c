@@ -22,6 +22,22 @@ int fetchSysInfo () {
 	return 5;
 }
 
+void curJump (int l, bool sequential) {
+	if (!sequential) {
+		if (l > 0) {
+			for (int i = 0; i < l; i++) {
+				printf("\n");
+			}
+		}
+
+		else if (l < 0) {
+			for (int i = 0; i < -l; i++) {
+				printf("\x1b[1A");
+			}
+		}
+	}
+}
+
 void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, unsigned int delay) {
 /*
  * Main loop for printing to screen. Takes in a series of arguments
@@ -33,42 +49,49 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
  *
  * At the end of the program, the screen will be cleared and will be averaged at the end and displayed
  */
-
-    CPUstats cpuStats = { 0, 0 };
 	memstat* memStats = fetchMemStats();
-    double prevUse = 0;
+	int jump = 0;
 
-	int jump;
-
-    // main loop
-    for (int i = 0; i < samples; i++) {
-        printf("Poll %d: \n+=====================================+\n", i+1);
-		jump = 2;
+	for (int i = 0; i < samples; i++) {
+		jump = 1;
+		printf("Poll %d\n", i+1);
 
 		if (stats != 2) {
-			jump += processCPU_use(&cpuStats, &prevUse, fancy) + 1;
-			printf("+=====================================+\n");
-			jump += processMem_use(&memStats, fancy) + 1;
-			printf("+=====================================+\n");
-		}
+			printf("+-------------------------------------------------------+\n");
+			printf("cpu desc.\n");
+			curJump(i, sequential);
 
+			printf("cpu %d\n", i+1);
+			curJump(samples-i, sequential);
+
+			printf("+-------------------------------------------------------+\n");
+			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
+			curJump(i, sequential);
+
+			processMem_use(&memStats, fancy);
+			curJump(samples-i, sequential);
+			jump += samples*2 + 5;
+		}
+		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
-			jump += processSess_Use(fancy) + 1;
-			printf("+=====================================+\n");
+			printf("+-------------------------------------------------------+\n");
+			printf("user desc.\n");
+
+			jump += processSess_Use(fancy) + 3;
+			printf("\n");
 		}
 
-		jump += fetchSysInfo();
-		sleep(delay);
 
-		if (!sequential && i+1 < samples) {
-			printf("\x1b[%dA\x1b[0J", jump); // move cursor "jump" lines up and clear the screen
-		}
-		else {
-			printf("\n\n");
+		//printf("+-------------------------------------------------------+\n");
+		//jump += fetchSysInfo() + 1;
+
+		if (i+1 < samples) {
+			sleep(delay);
+			curJump(-jump, sequential);
 		}
 	}
 }
 
 int main (int arc, char** argc) {
-	pollUse(false, true, 0, 5, 1);
+	pollUse(false, true, 0, 5, 2);
 }

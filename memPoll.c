@@ -38,34 +38,20 @@ memstat* fetchMemStats () {
 int processMem_use (memstat** prev, bool fancy) {
 	memstat* current = fetchMemStats();
 
-	char ramVis[201] = { 0 }; // RAM memory Visualiation
-	char swapVis[201] = { 0 };
 	char virtVis[201] = { 0 };
 
-    double rPercent = current->rUsed / current->rTotal * 200;
-    double sPercent = current->sUsed / current->sTotal * 200;
-    double vPercent = current->vUsed / current->vTotal * 200;
-
-	if (fancy) {
-		stringMult('|', (int)rPercent, ramVis);
-        stringMult('|', (int)sPercent, swapVis);
-        stringMult('|', (int)vPercent, virtVis);
-	}
-
-    char rMarker = (current->rUsed - (*prev)->rUsed) < 0 ? '-' : '+';
-    char sMarker = (current->sUsed - (*prev)->sUsed) < 0 ? '-' : '+';
+    double vPercent = current->vUsed / current->vTotal * 50;
     char vMarker = (current->vUsed - (*prev)->vUsed) < 0 ? '-' : '+';
 
-    printf("Physical (GB):\n%2.2f/%2.2f - %s\n", current->rUsed, current->rTotal, ramVis);
-    printf("(%c%2.2f)\n\n", rMarker, ABS(current->rUsed - (*prev)->rUsed));
 
-    printf("Swap (GB):\n%2.2f/%2.2f - %s\n", current->sUsed, current->sTotal, swapVis);
-    printf("(%c%2.2f)\n\n", sMarker, ABS(current->sUsed - (*prev)->sUsed));
+	if (fancy) {
+        stringMult(vMarker, (int)vPercent, virtVis);
+	}
 
-    printf("Virtual (GB):\n%2.2f/%2.2f - %s\n", current->vUsed, current->vTotal, virtVis);
-    printf("(%c%2.2f)\n", vMarker, ABS(current->vUsed - (*prev)->vUsed));
-
+    double delta = current->vUsed - (*prev)->vUsed;
+    printf("%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB) | %s (%c%2.2f)", current->rUsed, current->rTotal, current->vUsed, current->vTotal, virtVis, vMarker, ABS(delta));
     free(*prev);
     *prev = current; // seg faulting
+
     return 11;
 }

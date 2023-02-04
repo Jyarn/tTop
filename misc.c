@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "misc.h"
+
 void colExtract (unsigned int* ret, int sz, char* bff) {
     // extract integers in /proc files
     // used in memPoll and cpuPoll
@@ -91,3 +93,14 @@ void stringMult (char multend, int n, char* out) {
 	out[i] = '\0';
 }
 
+void attachToHead (linkedList* attachend, linkedList* attachee) {
+    attachend->next = attachee->next;
+    attachee->next = attachend;
+}
+
+linkedList* destroy_lList (linkedList* head) {
+    free(head->data);
+    destroy_lList(head->next);
+    free(head);
+    return NULL;
+}

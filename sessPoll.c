@@ -43,6 +43,7 @@ sessInfo* fetchSess () {
         head = n;
     }
 
+    endutent();
     return head;
 }
 
