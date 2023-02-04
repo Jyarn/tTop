@@ -39,16 +39,14 @@ void curJump (int l, bool sequential) {
 }
 
 int printCPUHeader (CPUstats* prev) {
-	int jump = 1;
+	int jump = 2;
 
 	getCPUstats(prev);
 	double cpuUsage = calculateCPUusage(*prev);
 
-	int nCores = getNumCores();
-	if (nCores != -1) {
-		jump += 1;
-		printf("Number of cores: %d\n", nCores);
-	}
+	int nCores = sysconf(_SC_NPROCESSORS_CONF);
+	printf("Number of logical cores: %d\n", nCores);
+
 
 	printf(" total cpu use = %2.2f%c\n", cpuUsage, '%');
 	return jump;
