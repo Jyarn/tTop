@@ -22,39 +22,7 @@ void fetchProcName (char* bff, int bffSz, int pid) {
 
     bff[bffSz-1] = '\0';
 }
-/*
-struct utmp* fetchSess (char user[UT_NAMESIZE + 1], ) {
-    setutent();
-    struct utmp* u = getutent();
-    sessInfo* head = NULL; // return this
 
-    for (; u != NULL; u = getutent()) {
-        // link new node with head
-        sessInfo* n = malloc(sizeof(sessInfo));
-        n->next = head;
-        n->pid = u->ut_pid;
-        n->type = u->ut_type;
-
-        n->user = malloc((UT_NAMESIZE + 1)*sizeof(char) );
-        strncpy(n->user, u->ut_user, 32);
-        n->user[UT_NAMESIZE] = '\0';
-
-        char path[32];
-        sprintf(path, "/proc/%d/cmdline", u->ut_pid);
-        n->procName = malloc(2048*sizeof(char));
-        if (buffFRead(n->procName, path, 2048) == -1) {
-            // read failed, free memory
-            free(n->procName);
-            n->procName = NULL;
-        }
-
-        head = n;
-    }
-
-    endutent();
-    return head;
-}
-*/
 sessInfo* processUTMP (struct utmp* u) {
     sessInfo* n = malloc(sizeof(sessInfo));
 
@@ -85,12 +53,7 @@ int processSess_Use () {
             lines++;
 
             sessInfo* s = processUTMP(u);
-            if (u->ut_addr_v6[0] || u->ut_addr_v6[1] || u->ut_addr_v6[2] || u->ut_addr_v6[3] != 0) {
-                printf("%s\t%s\t(%d.%d.%d.%d)\n", s->user, s->host, u->ut_addr_v6[0], u->ut_addr_v6[1], u->ut_addr_v6[2], u->ut_addr_v6[3]);
-            }
-            else {
-                printf("%s\t%s\t(%s(%d)%s)\n", s->user, s->host, s->procName, u->ut_pid, s->id);
-            }
+            printf("%s\t%s\t%s\n", s->user, s->tty, (s->host[0] ? s->host : s->procName) );
         }
 
         u = getutent();
