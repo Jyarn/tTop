@@ -53,7 +53,7 @@ int processSess_Use () {
             lines++;
 
             sessInfo* s = processUTMP(u);
-            printf("%s\t%s\t%s\n", s->user, s->tty, (s->host[0] ? s->host : s->procName) );
+            printf("%-16s\t%s\t%s\n", s->user, s->tty, (s->host[0] ? s->host : s->procName) );
         }
 
         u = getutent();
