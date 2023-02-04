@@ -9,13 +9,21 @@
 #include "misc.h"
 #include "sessPoll.h"
 
-void printUtmp (int sz, char* in) {
-    for (int i = 0; i < sz; i++) {
-        printf("%c", in[i]);
-    }
-}
+void fetchProcName (char* bff, int bffSz, int pid) {
+    char path[32];
+    sprintf(path, "/proc/%d/cmdline", pid);
 
-sessInfo* fetchSess () {
+    // since we're do need the output to print to the screen
+    // we might as well consider 0 and -1 a failure to read
+    if (buffFRead(bff, path, bffSz - 1) <= 0) {
+        bff[0] = '\0';
+        return ;
+    }
+
+    bff[bffSz-1] = '\0';
+}
+/*
+struct utmp* fetchSess (char user[UT_NAMESIZE + 1], ) {
     setutent();
     struct utmp* u = getutent();
     sessInfo* head = NULL; // return this
@@ -46,32 +54,48 @@ sessInfo* fetchSess () {
     endutent();
     return head;
 }
+*/
+sessInfo* processUTMP (struct utmp* u) {
+    sessInfo* n = malloc(sizeof(sessInfo));
 
-int processSess_Use (bool fancy) {
+    strncpy(n->tty, u->ut_line, UT_LINESIZE);
+    n->user[UT_LINESIZE] = '\0';
+
+    strncpy(n->id, u->ut_id, 4);
+    n->id[4] = '\0';
+
+    strncpy(n->user, u->ut_user, UT_NAMESIZE);
+    n->user[UT_NAMESIZE] = '\0';
+
+    strncpy(n->host, u->ut_host, 32);
+    n->user[UT_NAMESIZE] = '\0';
+
+    fetchProcName(n->procName, PROCNAMELEN, u->ut_pid);
+    return n;
+}
+
+int processSess_Use () {
     int lines = 0;
 
-    sessInfo* i = fetchSess();
-    sessInfo* temp = i;
+    setutent();
+    struct utmp* u = getutent();
 
-    while (i != NULL) {
-        if (i->type != DEAD_PROCESS) {
+    while (u != NULL) {
+        if (u->ut_type == USER_PROCESS) {
             lines++;
 
-            if (fancy) {
-                printf("%d(%d) %s-->%s\n", i->pid, i->type, i->user, i->procName);
+            sessInfo* s = processUTMP(u);
+            if (u->ut_addr_v6[0] || u->ut_addr_v6[1] || u->ut_addr_v6[2] || u->ut_addr_v6[3] != 0) {
+                printf("%s\t%s\t(%d.%d.%d.%d)\n", s->user, s->host, u->ut_addr_v6[0], u->ut_addr_v6[1], u->ut_addr_v6[2], u->ut_addr_v6[3]);
             }
             else {
-                printf("%s-->%s\n", i->user, i->procName);
+                printf("%s\t%s\t(%s(%d)%s)\n", s->user, s->host, s->procName, u->ut_pid, s->id);
             }
         }
 
-        i = i->next;
-        free(temp->user);
-        free(temp->procName);
-        free(temp);
-
-        temp = i;
+        u = getutent();
     }
 
+    endutent();
     return lines;
 }

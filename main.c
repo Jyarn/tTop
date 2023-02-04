@@ -61,7 +61,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 			printf("cpu desc.\n");
 			curJump(i, sequential);
 
-			printf("cpu %d\n", i+1);
+			printf("cpu %d", i+1);
 			curJump(samples-i, sequential);
 
 			printf("+-------------------------------------------------------+\n");
@@ -70,14 +70,14 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 			processMem_use(&memStats, fancy);
 			curJump(samples-i, sequential);
-			jump += samples*2 + 5;
+			jump += samples*2 + 4;
 		}
 		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
 			printf("+-------------------------------------------------------+\n");
 			printf("user desc.\n");
 
-			jump += processSess_Use(fancy) + 3;
+			jump += processSess_Use() + 3;
 			printf("\n");
 		}
 
