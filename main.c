@@ -115,5 +115,5 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 int main (int arc, char** argc) {
 	getNumCores();
-	pollUse(true, true, 0, 5, 2);
+	pollUse(false, true, 0, 5, 2);
 }
