@@ -40,7 +40,7 @@ double calculateCPUusage(CPUstats stats) {
     return (crrActive / crrTotal) * 100;
 }
 
-int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
+int processCPU_use (CPUstats* prevStats, bool fancy) {
 	/*
 	 * Print cpu stats with --graphics enabled or disabled
 	 *
@@ -55,30 +55,31 @@ int processCPU_use (CPUstats* prevStats, double* prevUse, bool fancy) {
 
     int lines = 1;
 
-    getCPUstats(prevStats);
-    double currentUse = calculateCPUusage(*prevStats);
-    //printf("total cpu = %2.2f%c\n", currentUse, '%');
     if (fancy) {
+        double currentUse = calculateCPUusage(*prevStats);
 		char cpuView[101];
-		char cpuDelta[101];
-
 		stringMult('|', (int)currentUse, cpuView);
 
-        double delta = currentUse - *prevUse;
-		char marker = delta < 0 ? '-' : '+';
-		stringMult(marker, ABS((int)delta ), cpuDelta);
-
-        printf("Current CPU usage:\n");
-        printf("%s\n\n", cpuView);
-
-        printf("Change in CPU usage:\n");
-        printf("%s (%c%2.2f)\n\n", cpuDelta, marker, ABS(delta));
-
-        *prevUse = currentUse;
-
-        lines += 6;
+        printf("\t%s /(%2.2f)", cpuView, currentUse);
     }
 
+    printf("\n");
     return lines;
 }
 
+int getNumCores () {
+    unsigned int nCores = -1;
+	char bff[2048] = { 0 };
+    buffFRead(bff, "/proc/cpuinfo", 2047);
+
+    for (int i = 0; i < 2048 - 9; i++) {
+        if (!strncmp("cpu cores", &bff[i], 9)) {
+            char* fBuff = filterString(&bff[i], 2048 - i);
+            colExtract(&nCores, 1, fBuff);
+            free(fBuff);
+            break;
+        }
+    }
+
+    return nCores;
+}

@@ -38,6 +38,22 @@ void curJump (int l, bool sequential) {
 	}
 }
 
+int printCPUHeader (CPUstats* prev) {
+	int jump = 1;
+
+	getCPUstats(prev);
+	double cpuUsage = calculateCPUusage(*prev);
+
+	int nCores = getNumCores();
+	if (nCores != -1) {
+		jump += 1;
+		printf("Number of cores: %d\n", nCores);
+	}
+
+	printf(" total cpu use = %2.2f%c\n", cpuUsage, '%');
+	return jump;
+}
+
 void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, unsigned int delay) {
 /*
  * Main loop for printing to screen. Takes in a series of arguments
@@ -50,6 +66,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
  * At the end of the program, the screen will be cleared and will be averaged at the end and displayed
  */
 	memstat* memStats = fetchMemStats();
+	CPUstats cpuUse = { 0, 0, 0, 0 };
 	int jump = 0;
 
 	for (int i = 0; i < samples; i++) {
@@ -58,19 +75,19 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 		if (stats != 2) {
 			printf("+-------------------------------------------------------+\n");
-			printf("cpu desc.\n");
+			jump += printCPUHeader(&cpuUse);
 			curJump(i, sequential);
 
-			printf("cpu %d", i+1);
-			curJump(samples-i, sequential);
+			processCPU_use(&cpuUse, fancy);
+			curJump(samples-i-1, sequential);
 
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
 			curJump(i, sequential);
 
 			processMem_use(&memStats, fancy);
-			curJump(samples-i, sequential);
-			jump += samples*2 + 4;
+			curJump(samples-i-1, sequential);
+			jump += samples*2 + 3;
 		}
 		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
@@ -82,16 +99,23 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		}
 
 
-		//printf("+-------------------------------------------------------+\n");
-		//jump += fetchSysInfo() + 1;
+		printf("+-------------------------------------------------------+\n");
+		jump += fetchSysInfo() + 1;
 
 		if (i+1 < samples) {
 			sleep(delay);
-			curJump(-jump, sequential);
+
+			if (sequential) {
+				printf("\n\n");
+			}
+			else {
+				curJump(-jump, sequential);
+			}
 		}
 	}
 }
 
 int main (int arc, char** argc) {
-	pollUse(false, true, 0, 5, 2);
+	getNumCores();
+	pollUse(true, true, 0, 5, 2);
 }

@@ -35,23 +35,23 @@ memstat* fetchMemStats () {
     return ret;
 }
 
-int processMem_use (memstat** prev, bool fancy) {
+void processMem_use (memstat** prev, bool fancy) {
 	memstat* current = fetchMemStats();
+    printf("%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB)", current->rUsed, current->rTotal, current->vUsed, current->vTotal);
 
-	char virtVis[201] = { 0 };
+    if (fancy) {
+        char virtVis[201] = { 0 };
 
-    double vPercent = current->vUsed / current->vTotal * 50;
-    char vMarker = (current->vUsed - (*prev)->vUsed) < 0 ? '-' : '+';
+        double vPercent = current->vUsed / current->vTotal * 50;
+        char vMarker = (current->vUsed - (*prev)->vUsed) < 0 ? '-' : '+';
 
+        double delta = current->vUsed - (*prev)->vUsed;
 
-	if (fancy) {
         stringMult(vMarker, (int)vPercent, virtVis);
+        printf(" | %s (%c%2.2f)", virtVis, vMarker, ABS(delta));
 	}
 
-    double delta = current->vUsed - (*prev)->vUsed;
-    printf("%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB) | %s (%c%2.2f)", current->rUsed, current->rTotal, current->vUsed, current->vTotal, virtVis, vMarker, ABS(delta));
+    printf("\n");
     free(*prev);
     *prev = current; // seg faulting
-
-    return 11;
 }
