@@ -10,6 +10,15 @@
 #include "cpuPoll.h"
 #include "misc.h"
 
+double calculateCPUusage(CPUstats stats) {
+    /*
+    * calculate cpu usage based on values provided by stats
+    */
+    double crrActive = (double)(stats.active - stats.pActive);
+    double crrTotal  = (double)(stats.total - stats.pTotal);
+    return (crrActive / crrTotal) * 100;
+}
+
 double getCPUstats (CPUstats* prev) {
     /*
         prev = pointer to a CPUstat to be updated with new usage stats
@@ -19,7 +28,7 @@ double getCPUstats (CPUstats* prev) {
     char bff[2048];
     if (buffFRead(bff, "/proc/stat", 2048) == -1) {
         fprintf(stderr, "Unable able to read from /proc/stat");
-        return;
+        return calculateCPUusage(*prev);
     }
 
     char* flt = filterString(bff, 2048);
@@ -33,15 +42,6 @@ double getCPUstats (CPUstats* prev) {
     prev->total = prev->active + stats[3]+stats[4];
     free(flt);
     return calculateCPUusage(*prev);
-}
-
-double calculateCPUusage(CPUstats stats) {
-    /*
-    * calculate cpu usage based on values provided by stats
-    */
-    double crrActive = (double)(stats.active - stats.pActive);
-    double crrTotal  = (double)(stats.total - stats.pTotal);
-    return (crrActive / crrTotal) * 100;
 }
 
 int processCPU_use (CPUstats* prevStats, bool fancy) {
