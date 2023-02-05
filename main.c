@@ -143,10 +143,9 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
 			printf("+-------------------------------------------------------+\n");
-			printf("user desc.\n");
+			printf("### Sessions/users ###\n");
 
-			jump += processSess_Use() + 3;
-			printf("\n");
+			jump += processSess_Use() + 2;
 		}
 
 
@@ -238,14 +237,16 @@ int main (int argc, char** argv) {
 		}
 	}
 	// handles positional arguments
-	if (acceptPostitional && argc >= 3) {
+	if (acceptPostitional && argc >= 2) {
 		int t = 0;
-		samples = ((t = strToInt(argv[argc-2])) == -1) ? samples : t;
-		delay = ((t = strToInt(argv[argc-1])) == -1) ? delay : t;
-	}
-	else if (acceptPostitional && argc == 2) {
-		int t = 0;
-		samples = ((t = strToInt(argv[1])) == -1) ? samples : t;
+		t = strToInt(argv[argc-2]);
+		if (t == -1) {
+			samples = ((t = strToInt(argv[argc-1])) == -1) ? samples : t;
+		}
+		else {
+			samples = t;
+			delay = ((t = strToInt(argv[argc-1])) == -1) ? delay : t;
+		}
 	}
 
 	pollUse(sequential, fancy, stats, samples, delay, debug);
