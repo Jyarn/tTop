@@ -9,6 +9,5 @@ typedef struct s_CPUstats {
     unsigned int  total;
 } CPUstats;
 
-void getCPUstats (CPUstats* prev);
-double calculateCPUusage(CPUstats stats);
+double getCPUstats (CPUstats* prev);
 int processCPU_use (CPUstats* prevStats, bool fancy);

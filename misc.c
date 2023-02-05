@@ -21,40 +21,22 @@ void colExtract (unsigned int* ret, int sz, char* bff) {
     }
 }
 
-
 int buffFRead (char* buff, char* path, int sz) {
-    // read a file into a buffer
+    // try to read sz bytes of path into buff
     // return how much of path has been read into buff
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) { return -1; }
     int ret = read(fd, buff, sz);
     close(fd);
-    return ret; // note if read fails it will return -1
-}
-
-char* readFile (char* path) {
-    struct stat fInfo;
-    stat(path, &fInfo);
-
-    // allocate enough space for the file + a null terminator
-    char* ret = malloc(fInfo.st_size + sizeof(char));
-
-    int code = buffFRead(ret, path, fInfo.st_size);
-    ret[fInfo.st_size] = '\0';
-
-    if (code < 0) {
-        // file read failed
-        return NULL;
-    }
-
-    return ret;
+    return ret; // if read fails it will return -1
 }
 
 char* filterString (char* in, int sz) {
     /*
         filter all non-numerical characters in (char* in)
         so that it can be processed by colExtract.
+        output should look something like /proc/[pid]/statm
     */
 
     char* ret = malloc(sz);
@@ -91,16 +73,4 @@ void stringMult (char multend, int n, char* out) {
 	}
 
 	out[i] = '\0';
-}
-
-void attachToHead (linkedList* attachend, linkedList* attachee) {
-    attachend->next = attachee->next;
-    attachee->next = attachend;
-}
-
-linkedList* destroy_lList (linkedList* head) {
-    free(head->data);
-    destroy_lList(head->next);
-    free(head);
-    return NULL;
 }

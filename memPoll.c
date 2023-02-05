@@ -5,11 +5,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-
 #include "misc.h"
 #include "memPoll.h"
 
 memstat* fetchMemStats () {
+    /*
+    * report RAM, swap, and virtual memory usage in gigabytes, returns a memstat* containing this information
+    */
     char bff[2048] = { 0 };
     if (buffFRead(bff, "/proc/meminfo", 2047) == -1) {
         fprintf(stderr, "Unable to open /proc/meminfo\n");
@@ -36,6 +38,10 @@ memstat* fetchMemStats () {
 }
 
 void processMem_use (memstat** prev, bool fancy) {
+    /*
+    * print memory usage and if requested a bar representing the percentage of memory being used and the change in memory use
+    * this additional information is specified by fancy
+    */
 	memstat* current = fetchMemStats();
     printf("%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB)", current->rUsed, current->rTotal, current->vUsed, current->vTotal);
 
@@ -53,5 +59,5 @@ void processMem_use (memstat** prev, bool fancy) {
 
     printf("\n");
     free(*prev);
-    *prev = current; // seg faulting
+    *prev = current;
 }

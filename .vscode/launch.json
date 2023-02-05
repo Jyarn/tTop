@@ -10,10 +10,10 @@
             "request": "launch",
             "program": "${workspaceRoot}/ttop.out",
             "args": [
-                "--user",
+                //"--user",
                 "--debug",
-                "1",
-                "100"
+                "10",
+                "1"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

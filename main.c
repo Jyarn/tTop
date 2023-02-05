@@ -13,6 +13,9 @@
 #include "memPoll.h"
 
 int fetchSysInfo () {
+	/*
+	* fetch system info, output should be similar to uname -a except formatted better
+	*/
 	struct utsname sysInfo;
 	uname(&sysInfo);
 
@@ -25,6 +28,11 @@ int fetchSysInfo () {
 }
 
 void curJump (int l, bool sequential) {
+	/*
+	* sequential = allows use of escape codes (true = no escape codes, false = use escape codes)
+	* move cursor up or down depending on the sign of l iff sequential == false
+	* does nothing if sequential == true
+	*/
 	if (!sequential) {
 		if (l > 0) {
 			for (int i = 0; i < l; i++) {
@@ -41,10 +49,13 @@ void curJump (int l, bool sequential) {
 }
 
 int printCPUHeader (CPUstats* prev) {
+	/*
+	* Print cpu usage
+	* prev = previous cpu usage stats, used to calculate the current cpu usage
+	*/
 	int jump = 2;
 
-	getCPUstats(prev);
-	double cpuUsage = calculateCPUusage(*prev);
+	double cpuUsage = getCPUstats(prev);
 
 	int nCores = sysconf(_SC_NPROCESSORS_CONF);
 	printf("Number of logical cores: %d\n", nCores);
@@ -55,6 +66,10 @@ int printCPUHeader (CPUstats* prev) {
 }
 
 int printHeader (bool sequential, bool fancy, char stat, unsigned int samples, unsigned int delay, bool debug) {
+	/*
+	* Print the number of samples to be taken and their interval
+	* If in debug mode print arguments passed to pollUse
+	*/
 	if (!debug) {
 		// fetch memory usage
 		char statm[50];
@@ -75,7 +90,7 @@ int printHeader (bool sequential, bool fancy, char stat, unsigned int samples, u
 	  	printf("Reporting System + User Stats!\n");
 		break;
 	  case 1:
-	  	printf("Repoting System Stats Only!\n");
+	  	printf("Reporting System Stats Only!\n");
 		break;
 	  case 2:
 		printf("Reporting User Stats Only!\n");
@@ -98,8 +113,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
  * stats = 0 - print system and user, 1 - print system only, 2 - print user only
  * samples = number of poll(cycle) to perform before averaging out the results (assumed to be an unsigned int)
  * delay = time in-between each poll in seconds (assumed to be an unsigned int)
- *
- * At the end of the program, the screen will be cleared and will be averaged at the end and displayed
+ * debug = print command line arguments
  */
 	memstat* memStats = fetchMemStats();
 	CPUstats cpuUse = { 0, 0, 0, 0 };
@@ -150,33 +164,43 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 			}
 		}
 	}
+	free(memStats);
 }
 
 int strToInt (char* in) {
+	/*
+	* strtol wrapper, output should be similar to strtol except it returns -1 if the first character is not
+	* a number
+	* in = our string (assumed to be null terminated)
+	*/
 	int ret = strtol(in, NULL, 10);
 	if ((!ret && in[0] == '0') || ret) { return ret; }
 	return -1;
 }
 
 int processFlag (int argLen, int argPos, int argc, char** argv) {
+	/*
+	* process flags where an argument is required (--samples and --tdelay)
+	*/
 	char c = argv[argPos][argLen];
-	if (c == '\0' || c == '=' || ('0'<= c && c <= '9')) {
-		int ret = -1;
-		// handle cases: --samples 10  --samples= 10
-		if (argPos+1 < argc) {
-			ret = strToInt(argv[argPos+1]);
-			if (ret != -1) { return ret; }
-		}
+	int ret = -1;
 
+	if (c == '\0' || c == '=' || ('0'<= c && c <= '9')) {
 		int adj = 0;
 		if (argv[argPos][argLen] == '=') { adj = 1; }
 
-		return strToInt(&argv[argPos][argLen+adj]);
+		ret = strToInt(&argv[argPos][argLen+adj]);
+		// handle cases: --samples 10  --samples= 10
+		if (ret == -1 && argPos+1 < argc) {
+			ret = strToInt(argv[argPos+1]);
+			if (ret != -1) { return ret; }
+		}
 	}
-	return -1;
+	return ret;
 }
 
 int main (int argc, char** argv) {
+	// begin command line argument processing
 	bool sequential = false;
 	bool fancy = false;
 	bool debug = false;
@@ -184,7 +208,7 @@ int main (int argc, char** argv) {
 	unsigned int samples = 10;
 	unsigned int delay = 1;
 
-	bool accecptPostitional = true;
+	bool acceptPostitional = true;
 
 	for (int i = 1; i < argc; i++) {
 		if ( !strcmp(argv[i], "--system") || !strcmp(argv[i], "--user")) {
@@ -201,26 +225,27 @@ int main (int argc, char** argv) {
 		else if ( !strncmp(argv[i], "--samples", strlen("--samples"))) {
 			int t = processFlag(strlen("--samples"), i, argc, argv);
 			if (t != -1) {
-				accecptPostitional = false;
+				acceptPostitional = false;
 				samples = t;
 			}
 		}
 		else if ( !strncmp(argv[i], "--tdelay", strlen("--tdelay"))) {
 			int t = processFlag(strlen("--tdelay"), i, argc, argv);
 			if (t != -1) {
-				accecptPostitional = false;
+				acceptPostitional = false;
 				delay = t;
 			}
 		}
 	}
-	if (accecptPostitional && argc >= 2) {
+	// handles positional arguments
+	if (acceptPostitional && argc >= 3) {
 		int t = 0;
-		samples = ((t = strToInt(argv[argc-2])) == -1) ? sequential : t;
+		samples = ((t = strToInt(argv[argc-2])) == -1) ? samples : t;
 		delay = ((t = strToInt(argv[argc-1])) == -1) ? delay : t;
 	}
-	else if (accecptPostitional && argc == 1) {
+	else if (acceptPostitional && argc == 2) {
 		int t = 0;
-		samples = ((t = strToInt(argv[0])) == -1) ? sequential : t;
+		samples = ((t = strToInt(argv[1])) == -1) ? samples : t;
 	}
 
 	pollUse(sequential, fancy, stats, samples, delay, debug);
