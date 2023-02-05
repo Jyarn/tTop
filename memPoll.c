@@ -24,7 +24,7 @@ memstat* fetchMemStats () {
 
     memstat* ret = malloc(sizeof(memstat) );
 
-    ret->rUsed = stats[0] - stats[1] - stats[3] - stats[4] - stats[21];
+    ret->rUsed = stats[0] - stats[1] - stats[3] - stats[4] - stats[21] + stats[20];
     ret->rUsed /= 1024*1024; // convert to kb to gb
     ret->rTotal = (float)(stats[0]) / (1024.0f*1024.0f);
 
