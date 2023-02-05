@@ -12,4 +12,3 @@ typedef struct s_CPUstats {
 void getCPUstats (CPUstats* prev);
 double calculateCPUusage(CPUstats stats);
 int processCPU_use (CPUstats* prevStats, bool fancy);
-int getNumCores ();

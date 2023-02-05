@@ -9,7 +9,12 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/ttop.out",
-            "args": [],
+            "args": [
+                "--user",
+                "--debug",
+                "1",
+                "100"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

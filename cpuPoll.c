@@ -60,26 +60,7 @@ int processCPU_use (CPUstats* prevStats, bool fancy) {
 		char cpuView[101];
 		stringMult('|', (int)currentUse, cpuView);
 
-        printf("\t%s /(%2.2f)", cpuView, currentUse);
+        printf("\t%s /(%2.2f)\n", cpuView, currentUse);
     }
-
-    printf("\n");
     return lines;
-}
-
-int getNumCores () {
-    unsigned int nCores = -1;
-	char bff[2048] = { 0 };
-    buffFRead(bff, "/proc/cpuinfo", 2047);
-
-    for (int i = 0; i < 2048 - 9; i++) {
-        if (!strncmp("cpu cores", &bff[i], 9)) {
-            char* fBuff = filterString(&bff[i], 2048 - i);
-            colExtract(&nCores, 1, fBuff);
-            free(fBuff);
-            break;
-        }
-    }
-
-    return nCores;
 }
