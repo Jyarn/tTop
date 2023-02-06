@@ -140,6 +140,8 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 			curJump(samples-i-1, sequential);
 			jump += samples + 3;
 		}
+		// erase from everything from here to the bottom of the screen
+		// important so that output doesn't overlap with the previous poll 
 		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
 			printf("+-------------------------------------------------------+\n");
