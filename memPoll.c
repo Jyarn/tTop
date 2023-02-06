@@ -17,14 +17,14 @@ memstat* fetchMemStats () {
         fprintf(stderr, "Unable to open /proc/meminfo\n");
     }
 
-    unsigned int stats[22];
+    unsigned int stats[24];
     char* filteredBff = filterString(bff, 2048);
-    colExtract(stats, 22, filteredBff);
+    colExtract(stats, 24, filteredBff);
     free(filteredBff);
 
     memstat* ret = malloc(sizeof(memstat) );
 
-    ret->rUsed = stats[0] - stats[1] - stats[3] - stats[4] - stats[21] + stats[20];
+    ret->rUsed = stats[0] - stats[1] - stats[3] - stats[4] - stats[23] + stats[20];
     ret->rUsed /= 1024*1024; // convert to kb to gb
     ret->rTotal = (float)(stats[0]) / (1024.0f*1024.0f);
 
