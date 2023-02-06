@@ -55,7 +55,7 @@ Implementation:
 
   User sessions are fetched using getutent to scroll through utmp. Entries are printed only if they are user processes and
   then printed formatted like: ut_user ut_line ut_host (if ut_host is empty, the contents of /proc/ut_pid/cmdline is printed)
-
+  Seems to follow who
 
 Function Documentation:
   double calculateCPUusage(CPUstats stats)
