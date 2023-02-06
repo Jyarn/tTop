@@ -1,8 +1,12 @@
 Usage
  To run and build the project run:
   make
+
  To build the project run:
   make build
+
+ To run the project:
+  ./ttop.out
 
  Arguments:
   --sequential
@@ -19,9 +23,19 @@ Usage
   Positional arguments:
   The last 2 arguments are positional arguments (samples tdelay).
   If there is only 1 positional argument then that will specify how many samples that are to be taken
+  Positional arguments are accepted iff --samples or --tdelay is not specified
 
   Defaults:
     --samples=10 --tdelay=1
+
+  Ex.
+    ./ttop.out --graphical --user --sequential 100 1
+
+  Specifying values for --samples and --tdelay:
+    --samples=100
+    --samples 100
+    --samples100
+    --samples= 100
 
 Implementation:
   Functionality is split into seperate modules:
@@ -31,12 +45,12 @@ Implementation:
     misc - Miscellaneous functions
     sessPoll - Fetch user sessions
 
-  Printing is handled by pollUse, which decides how and what is to be printed the screen. Jump keeps track of the number
-  of lines printed to the screen and jumps up by to the start where printing first started.
+  Printing is handled by pollUse, which decides how and what is to be printed the screen. jump keeps track of the number
+  of lines printed to the screen and is used to jump up by back to the start.
   Command line argument processing is handled by looping through all of the arguments checking if they match the flags and
   if needed are passed to processFlag which handles flags like --samples=N
 
-  CPU usage is calculated by reading /proc/stat, and processing the numbers into and unsigned int array.
+  CPU usage is calculated by reading in /proc/stat, and processing the numbers into and unsigned int array.
   active cpu time  = user + nice + system + irq + softirq
   total cpu time =  = user + nice + system + irq + softirq + idle + iowait
   These are subtracted by the last time we calculcated the cpu time, divided and then multiplied by 100:
@@ -51,11 +65,11 @@ Implementation:
   virtual memory usage = physical memory usage + swap usage
   Total (Physical, Swap) Memory are calculated by reading in their respective fields
   Total Virtual Memory = Total Physical Memory + Total Swap Memory
-  Implementation generally follows the implementation of free in the free man page
+  Implementation generally follows the implementation of free in the free man page except when calculating physical used
 
   User sessions are fetched using getutent to scroll through utmp. Entries are printed only if they are user processes and
   then printed formatted like: ut_user ut_line ut_host (if ut_host is empty, the contents of /proc/ut_pid/cmdline is printed)
-  Seems to follow who
+  Output follows who
 
 Function Documentation:
   double calculateCPUusage(CPUstats stats)
@@ -127,6 +141,8 @@ Function Documentation:
     filter all non-numerical characters in (char* in)
     so that it can be processed by colExtract.
     output should look something like /proc/[pid]/statm
+    or like:
+    1 2 3 4 5 6
 
   void stringMult (char multend, int n, char* out)
     equivalent to python's string multiplication thing
