@@ -48,11 +48,11 @@ int processCPU_use (CPUstats* prevStats, bool fancy) {
 	/*
 	 * Print cpu stats with --graphics enabled or disabled
 	 *
-	 * prevStats = previous raw cpu usage stats, used to calculate current cpu stats (assumes cpu stats have updated)
-	 * fancy = specifies if additional information is to be printed (--graphics flag)
+	 * prevStats = previous raw cpu usage stats, used to calculate current cpu stats (assumes cpu stats are upto date)
+	 * fancy = specifies if anyting is to printed
 	 *
      *
-	 * returns number of lines that were printed (hardcoded)
+	 * returns 1
 	 */
 
     int lines = 1;
