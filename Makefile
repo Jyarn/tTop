@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-g -Wall -Werror
 OUT=ttop.out
 OBJ=main.o cpuPoll.o misc.o sessPoll.o memPoll.o IPC.o
-RARGS+
+RARGS=
 
 run: build
 	./$(OUT) $(RARGS)
@@ -10,11 +10,12 @@ run: build
 build: $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(OUT)
 
-testIPC: testIPC.o IPC.out
-	$(CC) $(CFLAGS) $(OBJ) -o $(OUT)
+testIPC: ipcTest.o IPC.o
+	$(CC) $(CFLAGS) ipcTest.o IPC.o -o testIPC.out
+	./testIPC.out
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJ)
+	rm $(OBJ) ipcTest.*

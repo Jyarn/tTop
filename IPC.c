@@ -1,12 +1,18 @@
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "IPC.h"
 
-int writePacket (int len, void* write, biDirPipe* out) {
-    fwrite(&len, sizeof(int), 1, out->write);
-    return fwrite(write, len, 1, out->write);
+int writeStr (char* str, biDirPipe* pipe) {
+    return writePacket(strlen(str)+1, str, pipe);
+}
+
+int writePacket (int len, void* bff, biDirPipe* out) {
+    write(out->write, &len, sizeof(int));
+    return write(out->write, bff, len);
 }
 
 void* readPacket (biDirPipe* in) {
@@ -16,9 +22,9 @@ void* readPacket (biDirPipe* in) {
 */
 
     int bffSize;
-    fread(&bffSize, sizeof(int), 1, in->read);
+    read(in->read, &bffSize, sizeof(int));
     void* bff = malloc(bffSize);
-    fread(bff, 1, bffSize, in->read);
+    read(in->read, bff, bffSize);
     return bff;
 }
 
@@ -37,13 +43,13 @@ biDirPipe* genChild (job childTask, void* args) {
 
     biDirPipe* ret = malloc(sizeof(biDirPipe));
 
-    pid_t child = fork();
+    pid_t childPID = fork();
 
-    if (child < 0) {
+    if (childPID < 0) {
         perror("fork");
         return NULL;
     }
-    else if (!child) { // child
+    else if (!childPID) { // child
         ret->read = parent[0];
         ret->write = child[1];
         close(parent[1]);

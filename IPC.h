@@ -1,11 +1,5 @@
 #ifndef __IPC__H
 #define __IPC__H
-
-typedef struct {
-    int len;
-    void* msg;
-} packet;
-
 typedef struct {
 // bi-directional pipe
     int write;
@@ -13,7 +7,7 @@ typedef struct {
 } biDirPipe;
 
 typedef void (*job)(void*, biDirPipe*);
-
+int writeStr (char* str, biDirPipe* pipe);
 int writePacket (int len, void* write, biDirPipe* out);
 void* readPacket (biDirPipe* in);
 void killPipe (biDirPipe* pipe);
