@@ -2,6 +2,7 @@
 #define __MEMPOLL__
 
 #include <stdbool.h>
+#include "IPC.h"
 
 typedef struct s_memstat {
     double rUsed;
@@ -15,6 +16,7 @@ typedef struct s_memstat {
 } memstat;
 
 memstat* fetchMemStats ();
-void processMem_use (memstat** prev, bool fancy);
-
+void processMem_use (memstat** prev, bool fancy, biDirPipe* pipe);
+int printMemUse (biDirPipe* in);
+void async_processMem_use (void* args, biDirPipe* in);
 #endif

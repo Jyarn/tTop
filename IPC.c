@@ -11,8 +11,10 @@ int writeStr (char* str, biDirPipe* pipe) {
 }
 
 int writePacket (int len, void* bff, biDirPipe* out) {
-    write(out->write, &len, sizeof(int));
-    return write(out->write, bff, len);
+    if (write(out->write, &len, sizeof(int)) <= 0) { perror("ERROR: writing integer to pipe"); }
+    int lines = 0;
+    if ((lines = write(out->write, bff, len)) <= 0) { perror("ERROR: writing message to pipe"); }
+    return lines;
 }
 
 void* readPacket (biDirPipe* in) {

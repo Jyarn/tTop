@@ -1,6 +1,8 @@
 #include <string.h>
-#include "misc.h"
 #include <stdbool.h>
+
+#include "misc.h"
+#include "IPC.h"
 
 typedef struct s_CPUstats {
     unsigned int pActive;
@@ -9,5 +11,8 @@ typedef struct s_CPUstats {
     unsigned int  total;
 } CPUstats;
 
+void async_processCPU_use (void* args, biDirPipe* pipe);
+int printCPUHeader (CPUstats* prev, biDirPipe* pipe);
+int printCPUuse (biDirPipe* in);
 double getCPUstats (CPUstats* prev);
-int processCPU_use (CPUstats* prevStats, bool fancy);
+void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe);

@@ -8,6 +8,28 @@
 
 #include "misc.h"
 #include "sessPoll.h"
+#include "IPC.h"
+
+void async_processSess_use (void* args, biDirPipe* pipe) {
+    cmdArgs* arg = (cmdArgs* )args;
+    for (int i = 0; i < arg->nSamples; i++ ) {
+        processSess_Use(pipe);
+        sleep(arg->tDelay);
+    }
+}
+
+int printSessUse (biDirPipe* pipe) {
+    int lines = 0;
+    void* line = readPacket(pipe);
+
+    while (*(char* )line != 0) {
+        printf(line);
+        lines++;
+        line = readPacket(pipe);
+    }
+
+    return lines;
+}
 
 void fetchProcName (char* bff, int bffSz, int pid) {
     /*
@@ -51,7 +73,7 @@ sessInfo* processUTMP (struct utmp* u) {
     return n;
 }
 
-int processSess_Use () {
+int processSess_Use (biDirPipe* pipe) {
     /*
     * process utmp entries
     * only print user processes and print lines in this format:
@@ -65,12 +87,20 @@ int processSess_Use () {
     setutent(); // rewind file pointer to beggining of utmp file
     struct utmp* u = getutent();
 
+    char bff[2048];
+    int bffPointer;
+
     while (u != NULL) {
+        bffPointer = 0;
+
         if (u->ut_type == USER_PROCESS) {
             lines++;
 
             sessInfo* s = processUTMP(u);
-            printf("%-8s\t%s\t%s\n", s->user, s->tty, (s->host[0] ? s->host : s->procName) );
+            bffPointer = sprintf(bff, "%-8s\t%s\t%s\n", s->user, s->tty, (s->host[0] ? s->host : s->procName) );
+            bff[bffPointer] = '\0';
+
+            writeStr(bff, pipe);
             free(s);
         }
 
@@ -78,5 +108,7 @@ int processSess_Use () {
     }
 
     endutent(); // close utmp file
+    char w = '\0';
+    writePacket(sizeof(char), &w, pipe);
     return lines;
 }

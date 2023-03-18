@@ -9,6 +9,43 @@
 #include "misc.h"
 #include "cpuPoll.h"
 #include "misc.h"
+#include "IPC.h"
+
+void async_processCPU_use (void* args, biDirPipe* pipe) {
+    CPUstats cpuUse = { 0, 0, 0, 0 };
+    cmdArgs* arg = (cmdArgs*)args;
+
+    for (int i = 0; i < arg->nSamples; i++) {
+        printCPUHeader(&cpuUse, pipe);
+        processCPU_use(&cpuUse, arg->fancy, pipe);
+        sleep(arg->tDelay);
+    }
+}
+
+int printCPUHeader (CPUstats* prev, biDirPipe* pipe) {
+	/*
+	* Print cpu usage
+	* prev = previous cpu usage stats, used to calculate the current cpu usage
+	*/
+	int jump = 2;
+    char bff[2048];
+    int bffPointer = 0;
+
+	double cpuUsage = getCPUstats(prev);
+
+	int nCores = sysconf(_SC_NPROCESSORS_CONF);
+	bffPointer += sprintf(bff, "Number of logical cores: %d\n", nCores);
+	bffPointer += sprintf(&bff[bffPointer], " total cpu use = %2.2f%c\n", cpuUsage, '%');
+    bff[bffPointer] = '\0';
+    writeStr(bff, pipe);
+}
+
+int printCPUuse (biDirPipe* in) {
+    void* bff = readPacket(in);
+    printf(bff);
+    free(bff);
+    return 2;
+}
 
 double calculateCPUusage(CPUstats stats) {
     /*
@@ -43,8 +80,7 @@ double getCPUstats (CPUstats* prev) {
     free(flt);
     return calculateCPUusage(*prev);
 }
-
-int processCPU_use (CPUstats* prevStats, bool fancy) {
+void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe) {
 	/*
 	 * Print cpu stats with --graphics enabled or disabled
 	 *
@@ -56,13 +92,16 @@ int processCPU_use (CPUstats* prevStats, bool fancy) {
 	 */
 
     int lines = 1;
+    char bff[2048] = { 0 };
+    int bffPointer = 0;
 
     if (fancy) {
         double currentUse = calculateCPUusage(*prevStats); // don't call getCPUstats because prevStats is up to date
 		char cpuView[101];
 		stringMult('|', (int)currentUse, cpuView);
 
-        printf("\t%s /(%2.2f)\n", cpuView, currentUse);
+        bffPointer += sprintf(bff, "\t%s /(%2.2f)\n", cpuView, currentUse);
     }
-    return lines;
+    bff[bffPointer] = '\0';
+    writeStr(bff, pipe);
 }

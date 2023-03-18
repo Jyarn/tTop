@@ -7,6 +7,24 @@
 
 #include "misc.h"
 #include "memPoll.h"
+#include "IPC.h"
+
+void async_processMem_use (void* args, biDirPipe* in) {
+    cmdArgs* arg = (cmdArgs*)args;
+	memstat* memStats = fetchMemStats();
+
+    for (int i = 0; i < arg->nSamples; i++ ) {
+        processMem_use(&memStats, arg->fancy, in);
+        sleep(arg->tDelay);
+    }
+}
+
+int printMemUse (biDirPipe* in) {
+    void* bff = readPacket(in);
+    printf(bff);
+    free(bff);
+    return 1;
+}
 
 memstat* fetchMemStats () {
     /*
@@ -37,13 +55,14 @@ memstat* fetchMemStats () {
     return ret;
 }
 
-void processMem_use (memstat** prev, bool fancy) {
+void processMem_use (memstat** prev, bool fancy, biDirPipe* pipe) {
     /*
     * print memory usage and if requested a bar representing the percentage of memory being used and the change in memory use
     * this additional information is specified by fancy
     */
 	memstat* current = fetchMemStats();
-    printf("%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB)", current->rUsed, current->rTotal, current->vUsed, current->vTotal);
+    char bff[2048] = { 0 };
+    int bffPointer = sprintf(bff, "%2.2f/%2.2f (GB) -- %2.2f/%2.2f (GB)", current->rUsed, current->rTotal, current->vUsed, current->vTotal);
 
     if (fancy) {
         char virtVis[201] = { 0 };
@@ -54,10 +73,12 @@ void processMem_use (memstat** prev, bool fancy) {
         double delta = current->vUsed - (*prev)->vUsed;
 
         stringMult(vMarker, (int)vPercent, virtVis);
-        printf(" | %s (%c%2.2f)", virtVis, vMarker, ABS(delta));
+        bffPointer += sprintf(&bff[bffPointer], " | %s (%c%2.2f)", virtVis, vMarker, ABS(delta));
 	}
 
-    printf("\n");
+    bff[bffPointer] = '\n';
+    bff[bffPointer+1] = '\0';
+    writeStr(bff, pipe);
     free(*prev);
     *prev = current;
 }

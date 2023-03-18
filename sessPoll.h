@@ -2,7 +2,8 @@
 #define __SESSFETCH__
 
 #include <utmp.h>
-#define PROCNAMELEN 2048
+#include "IPC.h"
+#define PROCNAMELEN 100
 
 typedef struct s_sessInfo {
     char tty[UT_LINESIZE+1];
@@ -13,6 +14,8 @@ typedef struct s_sessInfo {
     char procName[PROCNAMELEN];
 } sessInfo;
 
-int processSess_Use ();
+void async_processSess_use (void* args, biDirPipe* pipe);
+int printSessUse (biDirPipe* pipe);
+int processSess_Use (biDirPipe* pipe);
 
 #endif

@@ -1,7 +1,15 @@
 #ifndef __MISC__
 #define __MISC__
 
+#include <stdbool.h>
+
 #define ABS(a) ((a) < 0 ? (-a) : (a)) // absolute value function
+
+typedef struct {
+    bool            fancy;
+    unsigned int    tDelay;
+    unsigned int    nSamples;
+} cmdArgs;
 
 void colExtract (unsigned int* ret, int sz, char* bff);
 

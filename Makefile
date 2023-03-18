@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall
 OUT=ttop.out
 OBJ=main.o cpuPoll.o misc.o sessPoll.o memPoll.o IPC.o
 RARGS=
