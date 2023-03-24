@@ -59,9 +59,7 @@ void curJump (int l, bool sequential) {
 		}
 
 		else if (l < 0) {
-			for (int i = 0; i < -l; i++) {
-				printf("\x1b[1A");
-			}
+			printf("\x1b[%dA", -l);
 		}
 	}
 }
@@ -166,6 +164,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		printStr(sysPipe);
 		printStr(sysPipe);
 		printStr(sysPipe);
+
 		jump += 6;
 
 		if (i+1 < samples) {

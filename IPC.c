@@ -45,8 +45,12 @@ void* readPacket (biDirPipe* in) {
 }
 
 void killPipe (biDirPipe* pipe) {
-    close(pipe->read);
-    close(pipe->write);
+    if (close(pipe->read) == -1) {
+        perror("ERROR: read pipe close failed");
+    }
+    if (close(pipe->write) == -1) {
+        perror("ERROR: write pipe close failed");
+    }
     free(pipe);
 }
 
@@ -62,7 +66,7 @@ biDirPipe* genChild (job childTask, void* args) {
     pid_t childPID = fork();
 
     if (childPID < 0) {
-        perror("fork");
+        perror("ERROR: fork failed");
         return NULL;
     }
     else if (!childPID) { // child

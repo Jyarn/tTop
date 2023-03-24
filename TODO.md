@@ -1,7 +1,7 @@
 # Alpha
-Implement IPC \
-Multiprocess *Poll \
-Allow pollUse to read from pipes
+~~Implement IPC~~ \
+~~Multiprocess *Poll~~ \
+~~Allow pollUse to read from pipes~~
 
 # Beta
 Fix `--graphics` flag \
