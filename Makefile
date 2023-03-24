@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-g -Wall
 OUT=ttop.out
 OBJ=main.o cpuPoll.o misc.o sessPoll.o memPoll.o IPC.o
-RARGS=
+RARGS=--sequential --graphics --samples=20 --tdelay=2
 
 run: build
 	./$(OUT) $(RARGS)

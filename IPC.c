@@ -3,17 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "IPC.h"
+
+void printStr (biDirPipe* pipe) {
+    void* bff = readPacket(pipe);
+    printf(bff);
+    free(bff);
+    return 2;
+}
 
 int writeStr (char* str, biDirPipe* pipe) {
     return writePacket(strlen(str)+1, str, pipe);
 }
 
 int writePacket (int len, void* bff, biDirPipe* out) {
-    if (write(out->write, &len, sizeof(int)) <= 0) { perror("ERROR: writing integer to pipe"); }
+    if (write(out->write, &len, sizeof(int)) == -1) { perror("ERROR: writing integer to pipe"); }
     int lines = 0;
-    if ((lines = write(out->write, bff, len)) <= 0) { perror("ERROR: writing message to pipe"); }
+    if ((lines = write(out->write, bff, len)) == -1) { perror("ERROR: writing message to pipe"); }
     return lines;
 }
 
@@ -24,9 +32,16 @@ void* readPacket (biDirPipe* in) {
 */
 
     int bffSize;
-    read(in->read, &bffSize, sizeof(int));
+    if (read(in->read, &bffSize, sizeof(int)) <= 0) {
+        perror("ERROR: unable to read packet size");
+        return NULL;
+    }
     void* bff = malloc(bffSize);
-    read(in->read, bff, bffSize);
+    if (read(in->read, bff, bffSize) <= 0) {
+        perror("ERROR: unable to read message");
+        free(bff);
+        return NULL;
+    }
     return bff;
 }
 

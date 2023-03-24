@@ -7,6 +7,7 @@ typedef struct {
 } biDirPipe;
 
 typedef void (*job)(void*, biDirPipe*);
+void printStr (biDirPipe* pipe);
 int writeStr (char* str, biDirPipe* pipe);
 int writePacket (int len, void* write, biDirPipe* out);
 void* readPacket (biDirPipe* in);

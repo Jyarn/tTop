@@ -24,6 +24,7 @@ int printSessUse (biDirPipe* pipe) {
 
     while (*(char* )line != 0) {
         printf(line);
+        free(line);
         lines++;
         line = readPacket(pipe);
     }

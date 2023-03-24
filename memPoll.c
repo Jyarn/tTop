@@ -19,13 +19,6 @@ void async_processMem_use (void* args, biDirPipe* in) {
     }
 }
 
-int printMemUse (biDirPipe* in) {
-    void* bff = readPacket(in);
-    printf(bff);
-    free(bff);
-    return 1;
-}
-
 memstat* fetchMemStats () {
     /*
     * report RAM, swap, and virtual memory usage in gigabytes, returns a memstat* containing this information

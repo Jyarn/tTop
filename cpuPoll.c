@@ -40,13 +40,6 @@ int printCPUHeader (CPUstats* prev, biDirPipe* pipe) {
     writeStr(bff, pipe);
 }
 
-int printCPUuse (biDirPipe* in) {
-    void* bff = readPacket(in);
-    printf(bff);
-    free(bff);
-    return 2;
-}
-
 double calculateCPUusage(CPUstats stats) {
     /*
     * calculate cpu usage based on values provided by stats

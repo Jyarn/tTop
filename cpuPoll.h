@@ -13,6 +13,5 @@ typedef struct s_CPUstats {
 
 void async_processCPU_use (void* args, biDirPipe* pipe);
 int printCPUHeader (CPUstats* prev, biDirPipe* pipe);
-int printCPUuse (biDirPipe* in);
 double getCPUstats (CPUstats* prev);
 void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe);

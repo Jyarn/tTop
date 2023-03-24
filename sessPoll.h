@@ -3,7 +3,7 @@
 
 #include <utmp.h>
 #include "IPC.h"
-#define PROCNAMELEN 100
+#define PROCNAMELEN 2048
 
 typedef struct s_sessInfo {
     char tty[UT_LINESIZE+1];

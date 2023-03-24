@@ -107,6 +107,7 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 	biDirPipe* memPipe = genChild(async_processMem_use, &args);
 	biDirPipe* cpuPipe = genChild(async_processCPU_use, &args);
 	biDirPipe* sessPipe = genChild(async_processSess_use, &args);
+
 	int jump = 0;
 
 	for (int i = 0; i < samples; i++) {
@@ -116,17 +117,18 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 		if (stats != 2) {
 			printf("+-------------------------------------------------------+\n");
-			jump += printCPUuse(cpuPipe) + ((!fancy || sequential) ? 0 : samples);
+			printStr(cpuPipe);
+			jump += 2 + ((!fancy || sequential) ? 0 : samples);
 			curJump(i, !fancy || sequential);
 
-			printCPUuse(cpuPipe);
+			printStr(cpuPipe);
 			curJump(samples-i-1, !fancy || sequential);
 
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
 			curJump(i, sequential);
 
-			printMemUse(memPipe);
+			printStr(memPipe);
 			curJump(samples-i-1, sequential);
 			jump += samples + 3;
 		}
