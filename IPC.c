@@ -11,7 +11,6 @@ void printStr (biDirPipe* pipe) {
     void* bff = readPacket(pipe);
     printf(bff);
     free(bff);
-    return 2;
 }
 
 int writeStr (char* str, biDirPipe* pipe) {

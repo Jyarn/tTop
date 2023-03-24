@@ -13,19 +13,36 @@
 #include "memPoll.h"
 #include "IPC.h"
 
-int fetchSysInfo () {
+void fetchSysInfo (biDirPipe* pipe) {
 	/*
 	* fetch system info, output should be similar to uname -a except formatted better
 	*/
 	struct utsname sysInfo;
 	uname(&sysInfo);
 
-	printf("OS: %s\n", sysInfo.sysname);
-	printf("Hostname: %s\n", sysInfo.nodename);
-	printf("Version: %s\n", sysInfo.version);
-	printf("Release: %s\n", sysInfo.release);
-	printf("Machine: %s\n", sysInfo.machine);
-	return 5;
+	char bff[2048];
+
+	bff[sprintf(bff, "OS: %s\n", sysInfo.sysname)] = '\0';
+	writeStr(bff, pipe);
+
+	bff[sprintf(bff, "Hostname: %s\n", sysInfo.nodename)] = '\0';
+	writeStr(bff, pipe);
+
+	bff[sprintf(bff, "Version: %s\n", sysInfo.version)] = '\0';
+	writeStr(bff, pipe);
+
+	bff[sprintf(bff, "Release: %s\n", sysInfo.release)] = '\0';
+	writeStr(bff, pipe);
+
+	bff[sprintf(bff, "Machine: %s\n", sysInfo.machine)] = '\0';
+	writeStr(bff, pipe);
+}
+
+void async_processSys_stats (void* args, biDirPipe* pipe) {
+	cmdArgs* arg = (cmdArgs*)args;
+	for (int i = 0; i < arg->nSamples; i++) {
+		fetchSysInfo(pipe);
+	}
 }
 
 void curJump (int l, bool sequential) {
@@ -100,13 +117,13 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
  * debug = print command line arguments
  */
 	memstat* memStats = fetchMemStats();
-	CPUstats cpuUse = { 0, 0, 0, 0 };
 
 	cmdArgs args = { fancy, delay, samples };
 
 	biDirPipe* memPipe = genChild(async_processMem_use, &args);
 	biDirPipe* cpuPipe = genChild(async_processCPU_use, &args);
 	biDirPipe* sessPipe = genChild(async_processSess_use, &args);
+	biDirPipe* sysPipe = genChild(async_processSys_stats, &args);
 
 	int jump = 0;
 
@@ -144,7 +161,12 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 
 		printf("+-------------------------------------------------------+\n");
-		jump += fetchSysInfo() + 1;
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		jump += 6;
 
 		if (i+1 < samples) {
 			sleep(delay);

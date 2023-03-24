@@ -22,12 +22,11 @@ void async_processCPU_use (void* args, biDirPipe* pipe) {
     }
 }
 
-int printCPUHeader (CPUstats* prev, biDirPipe* pipe) {
+void printCPUHeader (CPUstats* prev, biDirPipe* pipe) {
 	/*
 	* Print cpu usage
 	* prev = previous cpu usage stats, used to calculate the current cpu usage
 	*/
-	int jump = 2;
     char bff[2048];
     int bffPointer = 0;
 
@@ -83,8 +82,6 @@ void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe) {
      *
 	 * returns 1
 	 */
-
-    int lines = 1;
     char bff[2048] = { 0 };
     int bffPointer = 0;
 
