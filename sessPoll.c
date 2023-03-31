@@ -20,13 +20,18 @@ void async_processSess_use (void* args, biDirPipe* pipe) {
 
 int printSessUse (biDirPipe* pipe) {
     int lines = 0;
-    void* line = readPacket(pipe);
+    char bff[2048];
+    int sz;
 
-    while (*(char* )line != 0) {
-        printf(line);
-        free(line);
-        lines++;
-        line = readPacket(pipe);
+    while (1) {
+        if (read(pipe->read, &sz, sizeof(int)) == -1) { perror("ERROR: unable to read int from sessPipe"); }
+        if (read(pipe->read, bff, sz) == -1) { perror("ERROR: unable to read str from sessPipe"); }
+        if (sz == 1 && bff[0] == '\0') { break; }
+        else {
+            bff[sz] = '\0';
+            printf(bff);
+            lines += 1;
+        }
     }
 
     return lines;

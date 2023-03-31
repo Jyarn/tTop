@@ -28,6 +28,7 @@ int buffFRead (char* buff, char* path, int sz) {
     int fd = open(path, O_RDONLY);
     if (fd < 0) { return -1; }
     int ret = read(fd, buff, sz);
+    if (ret == -1) { perror("ERROR: unable to read file"); }
     close(fd);
     return ret; // if read fails it will return -1
 }
@@ -73,4 +74,17 @@ void stringMult (char multend, int n, char* out) {
 	}
 
 	out[i] = '\0';
+}
+
+int isNum (char* chk) {
+    /*
+    * Check if chk is a number
+    * chk("70") == 1; chk("70sdsfd") == false; chk("slkdf98") == 0
+    */
+
+    for (int i = 0; chk[i]; i++) {
+        if (chk[i] < '0' || chk[i] > '9') { return 0; }
+    }
+
+    return chk[0] ? 1 : 0;
 }

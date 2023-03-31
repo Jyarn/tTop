@@ -12,7 +12,7 @@ typedef struct {
 } cmdArgs;
 
 void colExtract (unsigned int* ret, int sz, char* bff);
-
+int isNum (char* chk);
 int buffFRead (char* buff, char* path, int sz);
 char* filterString (char* in, int sz);
 void stringMult (char multend, int n, char* out);

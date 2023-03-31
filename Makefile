@@ -10,6 +10,9 @@ run: build
 build: $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(OUT)
 
+gdb: $(OBJ)
+	gdb --args ./$(OUT) $(RARGS)
+
 testIPC: ipcTest.o IPC.o
 	$(CC) $(CFLAGS) ipcTest.o IPC.o -o testIPC.out
 	./testIPC.out

@@ -13,6 +13,7 @@
 #include "memPoll.h"
 #include "IPC.h"
 
+
 void fetchSysInfo (biDirPipe* pipe) {
 	/*
 	* fetch system info, output should be similar to uname -a except formatted better
@@ -138,7 +139,9 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 
 			printStr(cpuPipe);
 			curJump(samples-i-1, !fancy || sequential);
+		}
 
+		if (stats != 2) {
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
 			curJump(i, sequential);
@@ -153,7 +156,6 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		if (stats != 1) {
 			printf("+-------------------------------------------------------+\n");
 			printf("### Sessions/users ###\n");
-
 			jump += printSessUse(sessPipe) + 2;
 		}
 
@@ -192,25 +194,21 @@ int strToInt (char* in) {
 	return -1;
 }
 
-int processFlag (int argLen, int argPos, int argc, char** argv) {
+int processFlag (int off, int argOff, int argc, char** argv) {
 	/*
 	* process flags where an argument is required (--samples and --tdelay)
 	*/
-	char c = argv[argPos][argLen];
-	int ret = -1;
-
-	if (c == '\0' || c == '=' || ('0'<= c && c <= '9')) {
-		int adj = 0;
-		if (argv[argPos][argLen] == '=') { adj = 1; }
-
-		ret = strToInt(&argv[argPos][argLen+adj]);
-		// handle cases: --samples 10  --samples= 10
-		if (ret == -1 && argPos+1 < argc) {
-			ret = strToInt(argv[argPos+1]);
-			if (ret != -1) { return ret; }
-		}
+	if (argv[argOff][off] == '=') {
+		off += 1;
 	}
-	return ret;
+	else if (argv[argOff][off] == '\0') {
+		if (argOff < argc - 1) {
+			argOff++;
+			off = 0;
+		}
+        else { return -1; }
+	}
+    return strToInt(&argv[argOff][off]);
 }
 
 int main (int argc, char** argv) {
