@@ -88,3 +88,31 @@ int isNum (char* chk) {
 
     return chk[0] ? 1 : 0;
 }
+
+int strToInt (char* in) {
+	/*
+	* strtol wrapper, output should be similar to strtol except it returns -1 if the first character is not
+	* a number
+	* in = our string (assumed to be null terminated)
+	*/
+	int ret = strtol(in, NULL, 10);
+	if ((!ret && in[0] == '0') || ret) { return ret; }
+	return -1;
+}
+
+int processFlag (int off, int argOff, int argc, char** argv) {
+	/*
+	* process flags where an argument is required (--samples and --tdelay)
+	*/
+	if (argv[argOff][off] == '=') {
+		off += 1;
+	}
+	else if (argv[argOff][off] == '\0') {
+		if (argOff < argc - 1) {
+			argOff++;
+			off = 0;
+		}
+        else { return -1; }
+	}
+    return strToInt(&argv[argOff][off]);
+}

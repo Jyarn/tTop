@@ -29,7 +29,7 @@ void* readPacket (biDirPipe* in) {
  * first 64 bits determine package size and the
  * rest is read and inputed into the buffer and returned
 */
-
+    if (in == NULL) { return '\0'; }
     int bffSize;
     if (read(in->read, &bffSize, sizeof(int)) <= 0) {
         perror("ERROR: unable to read packet size");

@@ -11,154 +11,60 @@
 #include "cpuPoll.h"
 #include "sessPoll.h"
 #include "memPoll.h"
+#include "sysPoll.h"
 #include "IPC.h"
 
 
-void fetchSysInfo (biDirPipe* pipe) {
-	/*
-	* fetch system info, output should be similar to uname -a except formatted better
-	*/
-	struct utsname sysInfo;
-	uname(&sysInfo);
-
-	char bff[2048];
-
-	bff[sprintf(bff, "OS: %s\n", sysInfo.sysname)] = '\0';
-	writeStr(bff, pipe);
-
-	bff[sprintf(bff, "Hostname: %s\n", sysInfo.nodename)] = '\0';
-	writeStr(bff, pipe);
-
-	bff[sprintf(bff, "Version: %s\n", sysInfo.version)] = '\0';
-	writeStr(bff, pipe);
-
-	bff[sprintf(bff, "Release: %s\n", sysInfo.release)] = '\0';
-	writeStr(bff, pipe);
-
-	bff[sprintf(bff, "Machine: %s\n", sysInfo.machine)] = '\0';
-	writeStr(bff, pipe);
-}
-
-void async_processSys_stats (void* args, biDirPipe* pipe) {
-	cmdArgs* arg = (cmdArgs*)args;
-	for (int i = 0; i < arg->nSamples; i++) {
-		fetchSysInfo(pipe);
-	}
-}
-
-void curJump (int l, bool sequential) {
-	/*
-	* sequential = allows use of escape codes (true = no escape codes, false = use escape codes)
-	* move cursor up or down depending on the sign of l iff sequential == false
-	* does nothing if sequential == true
-	*/
-	if (!sequential) {
-		if (l > 0) {
-			for (int i = 0; i < l; i++) {
-				printf("\n");
-			}
-		}
-
-		else if (l < 0) {
-			printf("\x1b[%dA", -l);
-		}
-	}
-}
-
-int printHeader (bool sequential, bool fancy, char stat, unsigned int samples, unsigned int delay, bool debug) {
+int printHeader (unsigned int samples, unsigned int delay) {
 	/*
 	* Print the number of samples to be taken and their interval
 	* If in debug mode print arguments passed to pollUse
 	*/
-	if (!debug) {
-		// fetch memory usage
-		char statm[50];
-		buffFRead(statm, "/proc/self/statm", 49);
-		statm[49] = '\0';
-		unsigned int vmSize = strtol(statm, NULL, 10);
+	// fetch memory usage
+	char statm[50];
+	buffFRead(statm, "/proc/self/statm", 49);
+	statm[49] = '\0';
+	unsigned int vmSize = strtol(statm, NULL, 10);
 
-		printf("Nbr of samples: %d -- every %d secs\n", samples, delay);
-		printf(" Memory usage: %d kilobytes\n", vmSize);
-		return 2;
-	}
-	printf("sequential - %s\n", sequential ? "true" : "false");
-	printf("graphics - %s\n", fancy ? "true" : "false");
-	printf("stats - ");
-
-	switch (stat) {
-	  case 0:
-	  	printf("Reporting System + User Stats!\n");
-		break;
-	  case 1:
-	  	printf("Reporting System Stats Only!\n");
-		break;
-	  case 2:
-		printf("Reporting User Stats Only!\n");
-		break;
-	  default:
-	  	printf("????????\n");
-		break;
-	}
-
-	printf("samples - %d\n", samples);
-	printf("delay - %d\n", delay);
-	return 5;
+	printf("Nbr of samples: %d -- every %d secs\n", samples, delay);
+	printf(" Memory usage: %d kilobytes\n", vmSize);
+	return 2;
 }
 
-void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, unsigned int delay, bool debug) {
-/*
- * Main loop for printing to screen. Takes in a series of arguments
- * sequential = print without escapes codes as though output is being redirected into a file
- * fancy = --graphics (print all data)
- * stats = 0 - print system and user, 1 - print system only, 2 - print user only
- * samples = number of poll(cycle) to perform before averaging out the results (assumed to be an unsigned int)
- * delay = time in-between each poll in seconds (assumed to be an unsigned int)
- * debug = print command line arguments
- */
-	memstat* memStats = fetchMemStats();
-
+void printSequential (bool fancy, char stats, unsigned int samples, unsigned int delay) {
 	cmdArgs args = { fancy, delay, samples };
-
-	biDirPipe* memPipe = genChild(async_processMem_use, &args);
-	biDirPipe* cpuPipe = genChild(async_processCPU_use, &args);
-	biDirPipe* sessPipe = genChild(async_processSess_use, &args);
+	biDirPipe* cpuPipe = NULL;
+	biDirPipe* memPipe = NULL;
+	biDirPipe* sesPipe = NULL;
 	biDirPipe* sysPipe = genChild(async_processSys_stats, &args);
 
-	int jump = 0;
+	if (stats != 2) {
+		cpuPipe = genChild(async_processCPU_use, &args);
+		memPipe = genChild(async_processMem_use, &args);
+	}
+	if (stats != 1) {
+		sesPipe = genChild(async_processSess_use, &args);
+	}
 
 	for (int i = 0; i < samples; i++) {
-		jump = 1;
+		if (i != 0) { printf("\n\n"); }
 		printf("Poll %d\n", i+1);
-		jump += printHeader(sequential, fancy, stats, samples, delay, debug);
-
-		if (stats != 2) {
-			printf("+-------------------------------------------------------+\n");
-			printStr(cpuPipe);
-			jump += 2 + ((!fancy || sequential) ? 0 : samples);
-			curJump(i, !fancy || sequential);
-
-			printStr(cpuPipe);
-			curJump(samples-i-1, !fancy || sequential);
-		}
-
+		printHeader(samples, delay);
 		if (stats != 2) {
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
-			curJump(i, sequential);
-
 			printStr(memPipe);
-			curJump(samples-i-1, sequential);
-			jump += samples + 3;
 		}
-		// erase from everything from the current cursor position to the bottom of the screen
-		// important so that output doesn't overlap with the previous poll
-		if (!sequential) { printf("\x1b[0J"); }
 		if (stats != 1) {
 			printf("+-------------------------------------------------------+\n");
 			printf("### Sessions/users ###\n");
-			jump += printSessUse(sessPipe) + 2;
+			printSessUse(sesPipe);
 		}
-
+		if (stats != 2) {
+			printf("+-------------------------------------------------------+\n");
+			printStr(cpuPipe);
+			printStr(cpuPipe);
+		}
 
 		printf("+-------------------------------------------------------+\n");
 		printStr(sysPipe);
@@ -167,55 +73,118 @@ void pollUse (bool sequential, bool fancy, char stats, unsigned int samples, uns
 		printStr(sysPipe);
 		printStr(sysPipe);
 
-		jump += 6;
-
-		if (i+1 < samples) {
+		if (i < (samples-1)) {
 			sleep(delay);
+		}
+	}
 
-			if (sequential) {
-				printf("\n\n");
+	killPipe(cpuPipe);
+	killPipe(memPipe);
+	killPipe(sesPipe);
+	killPipe(sysPipe);
+}
+
+void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned int delay) {
+/*
+ * this is essentially just a buffered version of printSequential
+*/
+	cmdArgs args = { fancy, delay, samples };
+	biDirPipe* cpuPipe = NULL;
+	biDirPipe* memPipe = NULL;
+	biDirPipe* sesPipe = NULL;
+	biDirPipe* sysPipe = genChild(async_processSys_stats, &args);
+
+	int cpuBffPtr = -1;
+	int memBffPtr = -1;
+	buffer memBff = NULL;
+	buffer cpuBff = NULL;
+
+	int jump;
+
+	if (stats != 2) {
+		memPipe = genChild(async_processMem_use, &args);
+		sesPipe = genChild(async_processSess_use, &args);
+
+		cpuBffPtr = fancy ? 0 : -1;
+		memBffPtr = 0;
+
+		memBff = malloc(samples * sizeof(bffObject));
+		cpuBff = fancy ? malloc(samples*sizeof(bffObject)) : NULL;
+	}
+	if (stats != 1) {
+		cpuPipe = genChild(async_processCPU_use, &args);
+	}
+
+	for (int i = 0; i < samples; i++) {
+		jump = 0;
+		printf("Poll %d\n", i+1);
+		jump += printHeader(samples, delay) + 1;
+
+		if (stats != 2) {
+			memBff[memBffPtr++] = readPacket(memPipe);
+			printf("+-------------------------------------------------------+\n");
+			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
+			jump += 2;
+
+			for (int j = 0; j < memBffPtr; j++ ) {
+				printf(memBff[j]);
+				jump++;
+			}
+		}
+		if (stats != 1) {
+			printf("+-------------------------------------------------------+\n");
+			printf("### Sessions/users ###\n");
+			jump += printSessUse(sesPipe) + 2;
+		}
+		if (stats != 2) {
+			printf("+-------------------------------------------------------+\n");
+			printStr(cpuPipe); // prints 2 lines
+			jump += 3;
+
+			if (fancy) {
+				cpuBff[cpuBffPtr++] = readPacket(cpuPipe);
+				for (int j = 0; j < cpuBffPtr; j++) {
+					printf((char* )cpuBff[j] );
+					jump++;
+				}
 			}
 			else {
-				curJump(-jump, sequential);
+				readPacket(cpuPipe);	// flush '\0' character
 			}
 		}
-	}
-	free(memStats);
-}
 
-int strToInt (char* in) {
-	/*
-	* strtol wrapper, output should be similar to strtol except it returns -1 if the first character is not
-	* a number
-	* in = our string (assumed to be null terminated)
-	*/
-	int ret = strtol(in, NULL, 10);
-	if ((!ret && in[0] == '0') || ret) { return ret; }
-	return -1;
-}
+		printf("+-------------------------------------------------------+\n");
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		printStr(sysPipe);
+		jump += 6;
 
-int processFlag (int off, int argOff, int argc, char** argv) {
-	/*
-	* process flags where an argument is required (--samples and --tdelay)
-	*/
-	if (argv[argOff][off] == '=') {
-		off += 1;
-	}
-	else if (argv[argOff][off] == '\0') {
-		if (argOff < argc - 1) {
-			argOff++;
-			off = 0;
+		if (i < (samples-1)) {
+			printf("\x1b[%dA", jump);
+			printf("\x1b[0J");
+			sleep(delay);
 		}
-        else { return -1; }
 	}
-    return strToInt(&argv[argOff][off]);
+
+	killPipe(cpuPipe);
+	killPipe(memPipe);
+	killPipe(sesPipe);
+	killPipe(sysPipe);
+
+	for (int i = 0; i < memBffPtr; i++ ) {
+		free(memBff[i]);
+	}
+	for (int i = 0; i < cpuBffPtr; i++ ) {
+		free(cpuBff[i]);
+	}
 }
 
 int main (int argc, char** argv) {
 	// begin command line argument processing
 	bool sequential = false;
 	bool fancy = false;
-	bool debug = false;
 	char stats = 0;
 	unsigned int samples = 10;
 	unsigned int delay = 1;
@@ -233,7 +202,6 @@ int main (int argc, char** argv) {
 		}
 		else if ( !strcmp(argv[i], "--graphics")) { fancy = true; }
 		else if ( !strcmp(argv[i], "--sequential")) { sequential = true; }
-		else if ( !strcmp(argv[i], "--DEBUG")) { debug = true; }
 		else if ( !strncmp(argv[i], "--samples", strlen("--samples"))) {
 			int t = processFlag(strlen("--samples"), i, argc, argv);
 			if (t != -1) {
@@ -261,6 +229,10 @@ int main (int argc, char** argv) {
 			delay = ((t = strToInt(argv[argc-1])) == -1) ? delay : t;
 		}
 	}
-
-	pollUse(sequential, fancy, stats, samples, delay, debug);
+	if (sequential) {
+		printSequential(fancy, stats, samples, delay);
+	}
+	else {
+		printNotSequential(fancy, stats, samples, delay);
+	}
 }

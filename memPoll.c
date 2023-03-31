@@ -17,6 +17,8 @@ void async_processMem_use (void* args, biDirPipe* in) {
         processMem_use(&memStats, arg->fancy, in);
         sleep(arg->tDelay);
     }
+
+    free(memStats);
 }
 
 memstat* fetchMemStats () {
