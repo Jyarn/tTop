@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <signal.h>
 
 #include <unistd.h>
 #include <sys/utsname.h>
@@ -14,7 +15,23 @@
 #include "sysPoll.h"
 #include "IPC.h"
 
+void confirmExit (int signum) {
+	for (;;) {
+		char bff[2048];
+		int nRead;
+		write(STDOUT_FILENO, "Would you like to exit (y/n) ", 30);
+		if ((nRead = read(STDIN_FILENO, bff, 2047)) <= 0) {
+			perror("ERROR: user exit confirm failed");
+		}
 
+		bff[nRead-1] = '\0'; 	// remove '\n'
+		if (!strcmp("y", bff) ) { exit(0); }
+		else if (!strcmp("n", bff) ) { write(STDOUT_FILENO, "continuing....\n", 16);
+			return;
+		}
+		else { write(STDOUT_FILENO, "invalid response\n", 18); }
+	}
+}
 int printHeader (unsigned int samples, unsigned int delay) {
 	/*
 	* Print the number of samples to be taken and their interval
