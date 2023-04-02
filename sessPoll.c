@@ -29,7 +29,7 @@ int printSessUse (biDirPipe* pipe) {
         if (sz == 1 && bff[0] == '\0') { break; }
         else {
             bff[sz] = '\0';
-            printf(bff);
+            printf("%s", bff);
             lines += 1;
         }
     }

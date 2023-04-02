@@ -4,12 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "IPC.h"
 
 void printStr (biDirPipe* pipe) {
     void* bff = readPacket(pipe);
-    printf(bff);
+    printf("%s", (char* )bff);
     free(bff);
 }
 
@@ -66,6 +67,12 @@ biDirPipe* genChild (job childTask, void* args) {
         return NULL;
     }
     else if (!childPID) { // child
+	// block ctrl-c
+	sigset_t block;
+	sigemptyset(&block);
+	sigaddset(&block, SIGINT);
+	sigprocmask(SIG_BLOCK, &block, NULL);
+
         ret->read = parent[0];
         ret->write = child[1];
         close(parent[1]);

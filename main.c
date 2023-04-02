@@ -21,7 +21,7 @@ void confirmExit (int signum) {
 		int nRead;
 		write(STDOUT_FILENO, "Would you like to exit (y/n) ", 30);
 		if ((nRead = read(STDIN_FILENO, bff, 2047)) <= 0) {
-			perror("ERROR: user exit confirm failed");
+			write(STDERR_FILENO, "ERROR: user exit confirm failed\n", 33);
 		}
 
 		bff[nRead-1] = '\0'; 	// remove '\n'
@@ -144,7 +144,7 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 			jump += 2;
 
 			for (int j = 0; j < memBffPtr; j++ ) {
-				printf(memBff[j]);
+				printf("%s", memBff[j]);
 				jump++;
 			}
 		}
@@ -161,7 +161,7 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 			if (fancy) {
 				cpuBff[cpuBffPtr++] = readPacket(cpuPipe);
 				for (int j = 0; j < cpuBffPtr; j++) {
-					printf((char* )cpuBff[j] );
+					printf("%s", cpuBff[j] );
 					jump++;
 				}
 			}
@@ -199,6 +199,13 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 }
 
 int main (int argc, char** argv) {
+	struct sigaction newAct;
+	newAct.sa_handler = confirmExit;
+	sigemptyset(&newAct.sa_mask);
+	sigaddset(&newAct.sa_mask, SIGSTOP);
+	newAct.sa_flags = 0;
+	sigaction(SIGINT, &newAct, NULL);
+
 	// begin command line argument processing
 	bool sequential = false;
 	bool fancy = false;
