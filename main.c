@@ -25,7 +25,10 @@ void confirmExit (int signum) {
 		}
 
 		bff[nRead-1] = '\0'; 	// remove '\n'
-		if (!strcmp("y", bff) ) { exit(0); }
+		if (!strcmp("y", bff) ) {
+			killpg(getpgid(getpid()), SIGKILL);
+			exit(0);
+		}
 		else if (!strcmp("n", bff) ) { write(STDOUT_FILENO, "continuing....\n", 16);
 			return;
 		}
