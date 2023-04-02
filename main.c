@@ -15,6 +15,11 @@
 #include "sysPoll.h"
 #include "IPC.h"
 
+void terminate (int signum) {
+	write(STDOUT_FILENO, "LSKFJLSF", 9);
+	exit(0);
+}
+
 void confirmExit (int signum) {
 	for (;;) {
 		char bff[2048];
@@ -26,7 +31,9 @@ void confirmExit (int signum) {
 
 		bff[nRead-1] = '\0'; 	// remove '\n'
 		if (!strcmp("y", bff) ) {
-			killpg(getpgid(getpid()), SIGKILL);
+			if (killpg(getpgid(getpid()), SIGUSR1) == -1) {
+				write(STDOUT_FILENO, "ERROR: unable to kill child processes\n", 39);
+			}
 			exit(0);
 		}
 		else if (!strcmp("n", bff) ) { write(STDOUT_FILENO, "continuing....\n", 16);
@@ -203,11 +210,22 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 
 int main (int argc, char** argv) {
 	struct sigaction newAct;
+
+	// set ctrl-c to confirmExit
 	newAct.sa_handler = confirmExit;
 	sigemptyset(&newAct.sa_mask);
-	sigaddset(&newAct.sa_mask, SIGSTOP);
 	newAct.sa_flags = 0;
 	sigaction(SIGINT, &newAct, NULL);
+
+	// set SIGUSR1 to terminate
+	newAct.sa_handler = terminate;
+	sigaction(SIGUSR1, &newAct, NULL);
+	sigaction(SIGTSTP, &newAct, NULL);
+	// block ctrl-z
+	sigset_t block;
+	sigemptyset(&block);
+	sigaddset(&block, SIGTSTP);
+	sigprocmask(SIG_BLOCK, &block, NULL);
 
 	// begin command line argument processing
 	bool sequential = false;

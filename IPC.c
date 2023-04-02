@@ -9,7 +9,8 @@
 #include "IPC.h"
 
 void printStr (biDirPipe* pipe) {
-    void* bff = readPacket(pipe);
+    void* bff;
+    if ((bff = readPacket(pipe)) == NULL) { return; }
     printf("%s", (char* )bff);
     free(bff);
 }
@@ -30,7 +31,7 @@ void* readPacket (biDirPipe* in) {
  * first 64 bits determine package size and the
  * rest is read and inputed into the buffer and returned
 */
-    if (in == NULL) { return '\0'; }
+    if (in == NULL) { return NULL; }
     int bffSize;
     if (read(in->read, &bffSize, sizeof(int)) <= 0) {
         perror("ERROR: unable to read packet size");
@@ -42,6 +43,7 @@ void* readPacket (biDirPipe* in) {
         free(bff);
         return NULL;
     }
+
     return bff;
 }
 
@@ -67,11 +69,11 @@ biDirPipe* genChild (job childTask, void* args) {
         return NULL;
     }
     else if (!childPID) { // child
-	// block ctrl-c
-	sigset_t block;
-	sigemptyset(&block);
-	sigaddset(&block, SIGINT);
-	sigprocmask(SIG_BLOCK, &block, NULL);
+        // block ctrl-c
+        sigset_t block;
+        sigemptyset(&block);
+        sigaddset(&block, SIGINT);
+        sigprocmask(SIG_BLOCK, &block, NULL);
 
         ret->read = parent[0];
         ret->write = child[1];
@@ -86,7 +88,6 @@ biDirPipe* genChild (job childTask, void* args) {
         ret->write = parent[1];
         close(child[1]);
         close(parent[0]);
-
         return ret;
     }
 }

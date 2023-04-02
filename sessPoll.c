@@ -19,6 +19,7 @@ void async_processSess_use (void* args, biDirPipe* pipe) {
 }
 
 int printSessUse (biDirPipe* pipe) {
+    if (pipe == NULL) { return 0; }
     int lines = 0;
     char bff[2048];
     int sz;
