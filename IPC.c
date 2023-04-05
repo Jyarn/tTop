@@ -20,6 +20,7 @@ int writeStr (char* str, biDirPipe* pipe) {
 }
 
 int writePacket (int len, void* bff, biDirPipe* out) {
+    if (out == NULL) { fprintf(stderr, "ERROR: write to NULL pipe is invalid\n"); return -1; }
     if (write(out->write, &len, sizeof(int)) == -1) { perror("ERROR: writing integer to pipe"); }
     int lines = 0;
     if ((lines = write(out->write, bff, len)) == -1) { perror("ERROR: writing message to pipe"); }
@@ -31,7 +32,7 @@ void* readPacket (biDirPipe* in) {
  * first 64 bits determine package size and the
  * rest is read and inputed into the buffer and returned
 */
-    if (in == NULL) { return NULL; }
+    if (in == NULL) { fprintf(stderr, "ERROR: read from NULL pipe is invalid\n"); return NULL; }
     int bffSize;
     if (read(in->read, &bffSize, sizeof(int)) <= 0) {
         perror("ERROR: unable to read packet size");
@@ -47,10 +48,13 @@ void* readPacket (biDirPipe* in) {
     return bff;
 }
 
-void killPipe (biDirPipe* pipe) {
-    if (close(pipe->read) == -1) { perror("ERROR: read pipe close failed"); }
-    if (close(pipe->write) == -1) { perror("ERROR: write pipe close failed"); }
-    free(pipe);
+void killPipe (biDirPipe** pipe) {
+    if (pipe == NULL) { return ; }
+    if (*pipe == NULL) { return ; }
+    if (close((*pipe)->read) == -1) { perror("ERROR: read pipe close failed"); return ; }
+    if (close((*pipe)->write) == -1) { perror("ERROR: write pipe close failed"); return ; }
+    free(*pipe);
+    *pipe = NULL;
 }
 
 biDirPipe* genChild (job childTask, void* args) {
@@ -65,7 +69,7 @@ biDirPipe* genChild (job childTask, void* args) {
     pid_t childPID = fork();
 
     if (childPID < 0) {
-        perror("ERROR: fork failed");
+        perror("ERROR: fork (genChild) failed");
         return NULL;
     }
     else if (!childPID) { // child
@@ -80,7 +84,7 @@ biDirPipe* genChild (job childTask, void* args) {
         close(parent[1]);
         close(child[0]);
         childTask(args, ret);
-        killPipe(ret);
+        killPipe(&ret);
         exit(0);
     }
     else { // parent

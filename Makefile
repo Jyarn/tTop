@@ -7,18 +7,17 @@ RARGS=--sequential --graphics --samples=20 --tdelay=2
 run: build
 	./$(OUT) $(RARGS)
 
-build: $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(OUT)
-
-gdb: $(OBJ)
+gdb: build
 	gdb --args ./$(OUT) $(RARGS)
 
-testIPC: ipcTest.o IPC.o
-	$(CC) $(CFLAGS) ipcTest.o IPC.o -o testIPC.out
-	./testIPC.out
+val: build
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --trace-children=yes -s ./$(OUT) $(RARGS)
+
+build: $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(OUT)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJ) ipcTest.*
+	rm $(OBJ)

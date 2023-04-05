@@ -16,7 +16,6 @@
 #include "IPC.h"
 
 void terminate (int signum) {
-	write(STDOUT_FILENO, "LSKFJLSF", 9);
 	exit(0);
 }
 
@@ -105,10 +104,10 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 		}
 	}
 
-	killPipe(cpuPipe);
-	killPipe(memPipe);
-	killPipe(sesPipe);
-	killPipe(sysPipe);
+	killPipe(&cpuPipe);
+	killPipe(&memPipe);
+	killPipe(&sesPipe);
+	killPipe(&sysPipe);
 }
 
 void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned int delay) {
@@ -154,7 +153,7 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 			jump += 2;
 
 			for (int j = 0; j < memBffPtr; j++ ) {
-				printf("%s", memBff[j]);
+				printf("%s", memBff[j] ? memBff[j] : "NULL\n");
 				jump++;
 			}
 		}
@@ -171,7 +170,7 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 			if (fancy) {
 				cpuBff[cpuBffPtr++] = readPacket(cpuPipe);
 				for (int j = 0; j < cpuBffPtr; j++) {
-					printf("%s", cpuBff[j] );
+					printf("%s", cpuBff[j] ? cpuBff[j] : "NULL\n");
 					jump++;
 				}
 			}
@@ -195,10 +194,10 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 		}
 	}
 
-	killPipe(cpuPipe);
-	killPipe(memPipe);
-	killPipe(sesPipe);
-	killPipe(sysPipe);
+	killPipe(&cpuPipe);
+	killPipe(&memPipe);
+	killPipe(&sesPipe);
+	killPipe(&sysPipe);
 
 	for (int i = 0; i < memBffPtr; i++ ) {
 		free(memBff[i]);
@@ -220,7 +219,7 @@ int main (int argc, char** argv) {
 	// set SIGUSR1 to terminate
 	newAct.sa_handler = terminate;
 	sigaction(SIGUSR1, &newAct, NULL);
-	sigaction(SIGTSTP, &newAct, NULL);
+
 	// block ctrl-z
 	sigset_t block;
 	sigemptyset(&block);
