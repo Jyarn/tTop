@@ -11,6 +11,6 @@ void printStr (biDirPipe* pipe);
 int writeStr (char* str, biDirPipe* pipe);
 int writePacket (int len, void* write, biDirPipe* out);
 void* readPacket (biDirPipe* in);
-void killPipe (biDirPipe** pipe);
+void killPipe (biDirPipe* pipe);
 biDirPipe* genChild (job childTask, void* args);
 #endif
