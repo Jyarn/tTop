@@ -8,9 +8,9 @@
 
 #include "IPC.h"
 
-void printStr (biDirPipe* in) {
+void printStr (biDirPipe* pipe) {
     void* bff;
-    if ((bff = readPacket(in)) == NULL) { return; }
+    if ((bff = readPacket(pipe)) == NULL) { return; }
     printf("%s", (char* )bff);
     free(bff);
 }
@@ -48,11 +48,13 @@ void* readPacket (biDirPipe* in) {
     return bff;
 }
 
-void killPipe (biDirPipe* h) {
-    if (h == NULL) { return ; }
-    if (close(h->read) == -1) { perror("ERROR: read pipe close failed"); return ; }
-    if (close(h->write) == -1) { perror("ERROR: write pipe close failed"); return ; }
-    free(h);
+void killPipe (biDirPipe** pipe) {
+    if (pipe == NULL) { return ; }
+    if (*pipe == NULL) { return ; }
+    if (close((*pipe)->read) == -1) { perror("ERROR: read pipe close failed"); return ; }
+    if (close((*pipe)->write) == -1) { perror("ERROR: write pipe close failed"); return ; }
+    free(*pipe);
+    *pipe = NULL;
 }
 
 biDirPipe* genChild (job childTask, void* args) {
@@ -82,7 +84,7 @@ biDirPipe* genChild (job childTask, void* args) {
         close(parent[1]);
         close(child[0]);
         childTask(args, ret);
-        killPipe(ret);
+        killPipe(&ret);
         exit(0);
     }
     else { // parent

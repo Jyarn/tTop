@@ -55,7 +55,6 @@ double getCPUstats (CPUstats* prev) {
 
     unsigned int stats[10];
     char bff[2048];
-    for (int i = 0; i < 2048; i++) { bff[i] = '\0'; }
     if (buffFRead(bff, "/proc/stat", 2048) == -1) {
         fprintf(stderr, "Unable able to read from /proc/stat");
         return calculateCPUusage(*prev);
