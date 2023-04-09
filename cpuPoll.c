@@ -25,6 +25,8 @@ int fetchNCores () {
         if ( !strncmp(line, "cpu cores", strlen("cpu cores"))) {
             char* conv = filterString(line, nRead);
             nCores = strtol(conv, NULL, 10);
+            free(conv);
+            break;
         }
     }
     free(line);
