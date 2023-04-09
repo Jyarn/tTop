@@ -94,11 +94,14 @@ double getCPUstats (CPUstats* prev) {
 
     colExtract(stats, 10, flt);
 
+// active  = Total - Idle
+// Total = Idle + Active
+
     prev->pActive = prev->active;
     prev->pTotal = prev->total;
-
-    prev->active = stats[0]+stats[1]+stats[2]+stats[5]+stats[6];
-    prev->total = prev->active + stats[3]+stats[4];
+                 //user     nice     system   iowait   irq      softirq
+    prev->active = stats[0]+stats[1]+stats[2]+stats[4]+stats[5]+stats[6];
+    prev->total = prev->active +stats[3];
     free(flt);
     return calculateCPUusage(*prev);
 }
