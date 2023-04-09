@@ -1,5 +1,8 @@
 #ifndef __IPC__H
 #define __IPC__H
+
+#define NPIPES 3
+
 typedef struct {
 // bi-directional pipe
     int write;

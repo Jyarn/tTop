@@ -19,5 +19,9 @@ build: $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+cbld:
+	@make clean
+	@make build
+
 clean:
 	rm $(OBJ)

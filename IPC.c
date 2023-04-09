@@ -84,6 +84,12 @@ biDirPipe* genChild (job childTask, void* args) {
         close(parent[1]);
         close(child[0]);
         childTask(args, ret);
+
+        biDirPipe** freeArr = readPacket(ret);
+        for (int i = 0; i < NPIPES; i++ ) {
+            killPipe(freeArr+i);
+        }
+        free(freeArr);
         killPipe(&ret);
         exit(0);
     }

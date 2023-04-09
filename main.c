@@ -64,12 +64,22 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 	biDirPipe* sesPipe = NULL;
 	biDirPipe* sysPipe = genChild(async_processSys_stats, &args);
 
+	biDirPipe* freeArr[NPIPES] = { NULL, NULL, NULL };
+	writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sysPipe);
+	freeArr[0] = sysPipe;
+
 	if (stats != 2) {
 		cpuPipe = genChild(async_processCPU_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, cpuPipe);
+		freeArr[1] = cpuPipe;
+
 		memPipe = genChild(async_processMem_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, memPipe);
+		freeArr[2] = memPipe;
 	}
 	if (stats != 1) {
 		sesPipe = genChild(async_processSess_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sesPipe);
 	}
 
 	for (int i = 0; i < samples; i++) {
@@ -119,6 +129,9 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 	biDirPipe* memPipe = NULL;
 	biDirPipe* sesPipe = NULL;
 	biDirPipe* sysPipe = genChild(async_processSys_stats, &args);
+	biDirPipe* freeArr[NPIPES] = { NULL, NULL, NULL };
+	writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sysPipe);
+	freeArr[0] = sysPipe;
 
 	int cpuBffPtr = -1;
 	int memBffPtr = -1;
@@ -127,18 +140,24 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 
 	int jump;
 
+	if (stats != 1) {
+		sesPipe = genChild(async_processSess_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sesPipe);
+		freeArr[1] = sesPipe;
+	}
+
 	if (stats != 2) {
 		memPipe = genChild(async_processMem_use, &args);
-		sesPipe = genChild(async_processSess_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, memPipe);
+		freeArr[2] = memPipe;
+		cpuPipe = genChild(async_processCPU_use, &args);
+		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, cpuPipe);
 
 		cpuBffPtr = fancy ? 0 : -1;
 		memBffPtr = 0;
 
 		memBff = malloc(samples * sizeof(bffObject));
 		cpuBff = fancy ? malloc(samples*sizeof(bffObject)) : NULL;
-	}
-	if (stats != 1) {
-		cpuPipe = genChild(async_processCPU_use, &args);
 	}
 
 	for (int i = 0; i < samples; i++) {
@@ -205,6 +224,11 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 	for (int i = 0; i < cpuBffPtr; i++ ) {
 		free(cpuBff[i]);
 	}
+
+	free(memBff);
+	free(cpuBff);
+	memBff = NULL;
+	cpuBff = NULL;
 }
 
 int main (int argc, char** argv) {
