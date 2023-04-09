@@ -11,6 +11,27 @@
 #include "misc.h"
 #include "IPC.h"
 
+int fetchNCores () {
+    FILE* cpuinfo = fopen("/proc/cpuinfo", "r");
+    if (cpuinfo == NULL) { perror("ERROR: failed to open /proc/cpuinfo"); return -1; }
+
+
+    int nCores = -1;
+    int nRead;
+    char* line = NULL;
+    size_t n = 0;
+
+    while ((nRead = getline(&line, &n, cpuinfo)) != -1) {
+        if ( !strncmp(line, "cpu cores", strlen("cpu cores"))) {
+            char* conv = filterString(line, nRead);
+            nCores = strtol(conv, NULL, 10);
+        }
+    }
+    free(line);
+    fclose(cpuinfo);
+    return nCores;
+}
+
 void async_processCPU_use (void* args, biDirPipe* pipe) {
     CPUstats cpuUse = { 0, 0, 0, 0 };
     cmdArgs* arg = (cmdArgs*)args;
@@ -29,11 +50,18 @@ void printCPUHeader (CPUstats* prev, biDirPipe* pipe) {
 	*/
     char bff[2048];
     int bffPointer = 0;
-
+    int nCores = fetchNCores();
 	double cpuUsage = getCPUstats(prev);
 
-	int nCores = sysconf(_SC_NPROCESSORS_CONF);
-	bffPointer += sprintf(bff, "Number of logical cores: %d\n", nCores);
+    if (nCores == -1) {
+        int nCores = sysconf(_SC_NPROCESSORS_CONF);
+	    bffPointer += sprintf(bff, "Number of logical cores: %d\n", nCores);
+    }
+    else {
+        bffPointer += sprintf(bff, "Number of cores: %d\n", nCores);
+    }
+
+
 	bffPointer += sprintf(&bff[bffPointer], " total cpu use = %2.2f%c\n", cpuUsage, '%');
     bff[bffPointer] = '\0';
     writeStr(bff, pipe);

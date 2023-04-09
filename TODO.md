@@ -5,8 +5,9 @@
 ~~Add buffer for printing :(~~ \
 ~~sighandler~~
 # Beta
-Fix `--graphics` flag \
-Fix CPU usage calculations
+~~Fix `--graphics` flag~~ \
+Fix CPU usage calculations \
+~~Fix core count~~
 
 # Gamma
 ~~Refactor poll use to be more readable~~ \
