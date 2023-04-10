@@ -14,8 +14,8 @@ void async_processMem_use (void* args, biDirPipe* in) {
 	memstat* memStats = fetchMemStats();
 
     for (int i = 0; i < arg->nSamples; i++ ) {
-        processMem_use(&memStats, arg->fancy, in);
         sleep(arg->tDelay);
+        processMem_use(&memStats, arg->fancy, in);
     }
 
     free(memStats);
@@ -62,7 +62,7 @@ void processMem_use (memstat** prev, bool fancy, biDirPipe* pipe) {
     if (fancy) {
         char virtVis[201] = { 0 };
 
-        double vPercent = current->vUsed / current->vTotal * 50;
+        double vPercent = current->vUsed / current->vTotal * 100;
         char vMarker = (current->vUsed - (*prev)->vUsed) < 0 ? '-' : '+';
 
         double delta = current->vUsed - (*prev)->vUsed;

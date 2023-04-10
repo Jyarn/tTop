@@ -13,8 +13,8 @@
 void async_processSess_use (void* args, biDirPipe* pipe) {
     cmdArgs* arg = (cmdArgs* )args;
     for (int i = 0; i < arg->nSamples; i++ ) {
-        processSess_Use(pipe);
         sleep(arg->tDelay);
+        processSess_Use(pipe);
     }
 }
 

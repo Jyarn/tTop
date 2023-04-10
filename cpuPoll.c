@@ -37,11 +37,12 @@ int fetchNCores () {
 void async_processCPU_use (void* args, biDirPipe* pipe) {
     CPUstats cpuUse = { 0, 0, 0, 0 };
     cmdArgs* arg = (cmdArgs*)args;
+    getCPUstats(&cpuUse);
 
     for (int i = 0; i < arg->nSamples; i++) {
+        sleep(arg->tDelay);
         printCPUHeader(&cpuUse, pipe);
         processCPU_use(&cpuUse, arg->fancy, pipe);
-        sleep(arg->tDelay);
     }
 }
 
@@ -123,7 +124,7 @@ void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe) {
 		char cpuView[101];
 		stringMult('|', (int)currentUse, cpuView);
 
-        bffPointer += sprintf(bff, "\t%s /(%2.2f)\n", cpuView, currentUse);
+        bffPointer += sprintf(bff, "\t%s - (%2.2f)\n", cpuView, currentUse);
     }
     bff[bffPointer] = '\0';
     writeStr(bff, pipe);
