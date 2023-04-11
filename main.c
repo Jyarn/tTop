@@ -99,13 +99,14 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sesPipe);
 	}
 
+	sleep(delay);
+
 	for (int i = 0; i < samples; i++) {
-		if (i < (samples-1)) {
-			sleep(delay);
-		}
 		if (i != 0) { printf("\n\n"); }
 		printf("Poll %d\n", i+1);
+
 		printHeader(samples, delay);
+
 		if (stats != 2) {
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
@@ -128,6 +129,10 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 		printStr(sysPipe);
 		printStr(sysPipe);
 		printStr(sysPipe);
+
+		if (i < (samples-1)) {
+			sleep(delay);
+		}
 	}
 
 	killPipe(&cpuPipe);
@@ -180,15 +185,14 @@ void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned 
 		cpuBff = fancy ? malloc(samples*sizeof(bffObject)) : NULL;
 	}
 
+	sleep(delay);
+
 	for (int i = 0; i < samples; i++) {
 		jump = 0;
 		printf("Poll %d\n", i+1);
 		jump += printHeader(samples, delay) + 1;
 
 		if (stats != 2) {
-			if (i < samples - 1) {
-				sleep(delay);
-			}
 			memBff[memBffPtr++] = readPacket(memPipe);
 			printf("+-------------------------------------------------------+\n");
 			printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
