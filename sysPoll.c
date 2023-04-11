@@ -8,6 +8,7 @@
 void fetchSysInfo (biDirPipe* pipe) {
 	/*
 	* fetch system info, output should be similar to uname -a except formatted better
+	* write ouput to biDirPipe
 	*/
 	struct utsname sysInfo;
 	uname(&sysInfo);
@@ -31,6 +32,9 @@ void fetchSysInfo (biDirPipe* pipe) {
 }
 
 void async_processSys_stats (void* args, biDirPipe* pipe) {
+/*
+ * handle system info polling, output is written to passed biDirPipe
+*/
 	cmdArgs* arg = (cmdArgs*)args;
 	for (int i = 0; i < arg->nSamples; i++) {
 		fetchSysInfo(pipe);

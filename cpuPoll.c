@@ -12,6 +12,9 @@
 #include "IPC.h"
 
 int fetchNCores () {
+/*
+ * fetch the number of cores by reading /proc/cpuinfo
+*/
     FILE* cpuinfo = fopen("/proc/cpuinfo", "r");
     if (cpuinfo == NULL) { perror("ERROR: failed to open /proc/cpuinfo"); return -1; }
 
@@ -35,6 +38,9 @@ int fetchNCores () {
 }
 
 void async_processCPU_use (void* args, biDirPipe* pipe) {
+/*
+ * handlle CPU polling, output can be read from the biDirPipe
+*/
     CPUstats cpuUse = { 0, 0, 0, 0 };
     cmdArgs* arg = (cmdArgs*)args;
     getCPUstats(&cpuUse);
@@ -114,7 +120,6 @@ void processCPU_use (CPUstats* prevStats, bool fancy, biDirPipe* pipe) {
 	 * fancy = specifies if anyting is to printed
 	 *
      *
-	 * returns 1
 	 */
     char bff[2048] = { 0 };
     int bffPointer = 0;

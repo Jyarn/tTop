@@ -9,6 +9,9 @@
 #include "IPC.h"
 
 void printStr (biDirPipe* pipe) {
+ /*
+  * print a string from pipe
+ */
     void* bff;
     if ((bff = readPacket(pipe)) == NULL) { return; }
     printf("%s", (char* )bff);
@@ -16,10 +19,18 @@ void printStr (biDirPipe* pipe) {
 }
 
 int writeStr (char* str, biDirPipe* pipe) {
+/*
+ * write a string to pipe
+*/
     return writePacket(strlen(str)+1, str, pipe);
 }
 
 int writePacket (int len, void* bff, biDirPipe* out) {
+/*
+ * write a packet to out
+ * first write an int indidcating the size of the packet
+ * then write the object into out
+*/
     if (out == NULL) { fprintf(stderr, "ERROR: write to NULL pipe is invalid\n"); return -1; }
     if (write(out->write, &len, sizeof(int)) == -1) { perror("ERROR: writing integer to pipe"); }
     int lines = 0;
@@ -29,8 +40,9 @@ int writePacket (int len, void* bff, biDirPipe* out) {
 
 void* readPacket (biDirPipe* in) {
 /*
- * first 64 bits determine package size and the
- * rest is read and inputed into the buffer and returned
+ * read a packet from (biDirPipe*)in
+ * the first sizeof(int) bits determine package size and the
+ * rest is read and inputed into a buffer and returned
 */
     if (in == NULL) { fprintf(stderr, "ERROR: read from NULL pipe is invalid\n"); return NULL; }
     int bffSize;
@@ -49,6 +61,10 @@ void* readPacket (biDirPipe* in) {
 }
 
 void killPipe (biDirPipe** pipe) {
+/*
+ * free all FDs in the biDirPipe
+ * and free the pipe, and set it *pipe to NULL
+*/
     if (pipe == NULL) { return ; }
     if (*pipe == NULL) { return ; }
     if (close((*pipe)->read) == -1) { perror("ERROR: read pipe close failed"); return ; }
@@ -58,6 +74,17 @@ void killPipe (biDirPipe** pipe) {
 }
 
 biDirPipe* genChild (job childTask, void* args) {
+/*
+ * fork wrapper
+ * the child runs the function pointed by childTask, and is passed
+ * args and a biDirPipe
+ * the parent exits genChild, and is given the other end of
+ * the biDirPipe
+ *
+ * After exiting the child expects an biDirPipe* [NPIPES] array, which
+ * are all the other biDirPipes allocated in the main program. This is done
+ * to prevent memory leaks (since the child receives a duplicate of the parents memory)
+*/
     int child[2];
     int parent[2];
 

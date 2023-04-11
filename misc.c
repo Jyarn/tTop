@@ -65,7 +65,7 @@ char* filterString (char* in, int sz) {
 void stringMult (char multend, int n, char* out) {
 	// equivalent to python's string multiplication thing
 	// ex. 'a' * 5 == aaaaa
-	// output written into out, never checks if writing is inbounds
+	// output is written into out, never checks if writing is inbounds
 	// also null terminates
 
 	int i;

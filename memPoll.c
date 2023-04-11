@@ -10,6 +10,10 @@
 #include "IPC.h"
 
 void async_processMem_use (void* args, biDirPipe* in) {
+/*
+ * handle memory polling, which is then able to be fetched
+ * from the biDirPipe
+*/
     cmdArgs* arg = (cmdArgs*)args;
 	memstat* memStats = fetchMemStats();
 

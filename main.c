@@ -16,10 +16,19 @@
 #include "IPC.h"
 
 void terminate (int signum) {
+/*
+ * signal handler the SIGUSR1 signal
+*/
 	exit(0);
 }
 
 void confirmExit (int signum) {
+/*
+ * signal handler for the ctrl-c signal
+ * asks the user if they wish to exit
+ * and accepts only 2 responses y, or n
+ * loops otherwise
+*/
 	for (;;) {
 		char bff[2048];
 		int nRead;
@@ -30,7 +39,7 @@ void confirmExit (int signum) {
 
 		bff[nRead-1] = '\0'; 	// remove '\n'
 		if (!strcmp("y", bff) ) {
-			if (killpg(getpgid(getpid()), SIGUSR1) == -1) {
+			if (killpg(getpgid(getpid()), SIGUSR1) == -1) { // send SIGUSR1 to the whole process group
 				write(STDOUT_FILENO, "ERROR: unable to kill child processes\n", 39);
 			}
 			exit(0);
@@ -44,7 +53,6 @@ void confirmExit (int signum) {
 int printHeader (unsigned int samples, unsigned int delay) {
 	/*
 	* Print the number of samples to be taken and their interval
-	* If in debug mode print arguments passed to pollUse
 	*/
 	// fetch memory usage
 	char statm[50];
@@ -58,6 +66,15 @@ int printHeader (unsigned int samples, unsigned int delay) {
 }
 
 void printSequential (bool fancy, char stats, unsigned int samples, unsigned int delay) {
+/*
+ * print based on the arguments passed to the program, this handles the case where sequential output
+ * is requested
+ *
+ * fancy 	- whether the --graphics flag has been requested
+ * stats 	- 0 - print system and user, 1 - print system only, 2 - print user only
+ * samples 	- number of poll(cycle) to perform before averaging out the results (assumed to be an unsigned int)
+ * delay 	- time in-between each poll in seconds (assumed to be an unsigned int)
+*/
 	cmdArgs args = { fancy, delay, samples };
 	biDirPipe* cpuPipe = NULL;
 	biDirPipe* memPipe = NULL;
@@ -121,7 +138,10 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 
 void printNotSequential (bool fancy, char stats, unsigned int samples, unsigned int delay) {
 /*
- * this is essentially just a buffered version of printSequential
+ * printSequential except the memory and cpu usage is buffered, to account for users that
+ * logging in which would change where we place the cpu usage. Also uses escape characters
+ * unlike printSequential.
+ * Handles the case where the --sequential flag has not been specified
 */
 	cmdArgs args = { fancy, delay, samples };
 	biDirPipe* cpuPipe = NULL;

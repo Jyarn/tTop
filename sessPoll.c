@@ -11,6 +11,9 @@
 #include "IPC.h"
 
 void async_processSess_use (void* args, biDirPipe* pipe) {
+/*
+ * handle session polling, write output to biDirPipe
+*/
     cmdArgs* arg = (cmdArgs* )args;
     for (int i = 0; i < arg->nSamples; i++ ) {
         sleep(arg->tDelay);
@@ -19,6 +22,11 @@ void async_processSess_use (void* args, biDirPipe* pipe) {
 }
 
 int printSessUse (biDirPipe* pipe) {
+/*
+ * read from pipe and write to stdout until
+ * it encounters a single '\0' character which
+ * exits and returns the number of lines printed
+*/
     if (pipe == NULL) { return 0; }
     int lines = 0;
     char bff[2048];
@@ -88,6 +96,7 @@ int processSess_Use (biDirPipe* pipe) {
     * where s = ut_host if not NULL, otherwise it will be the string /proc/ut_pid/cmdline
     *
     * return number of lines printed to screen to be used by pollUse
+    * at the end send to the pipe a single '\0' character which indicates the end of the current poll
     */
     int lines = 0;
 
