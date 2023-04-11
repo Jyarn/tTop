@@ -82,7 +82,7 @@ void printSequential (bool fancy, char stats, unsigned int samples, unsigned int
 		writePacket(NPIPES*sizeof(biDirPipe*), freeArr, sesPipe);
 	}
 
-	//sleep(delay);
+	sleep(delay);
 
 	for (int i = 0; i < samples; i++) {
 		if (i != 0) { printf("\n\n"); }
